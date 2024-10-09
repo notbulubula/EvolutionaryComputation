@@ -10,10 +10,10 @@ import (
 
 // Enum for methods
 const (
-	Random                 = "random"
-	NearestNeighborEndOnly = "nearest_neighbor_end_only"
+	Random                  = "random"
+	NearestNeighborEndOnly  = "nearest_neighbor_end_only"
 	NearestNeighborFlexible = "nearest_neighbor_flexible"
-	GreedyCycle            = "greedy_cycle"
+	GreedyCycle             = "greedy_cycle"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	if len(os.Args) < 3 {
 		log.Fatalf("Usage: go run main.go  <data_file.csv> <method>")
 	}
-	
+
 	file := os.Args[1]
 	method := os.Args[2]
 
@@ -38,13 +38,28 @@ func main() {
 	switch method {
 	case Random:
 		// TODO: This should be a function call with callable methods.
-		// Should do the computation x times and return best/worst/average results. 
+		// Should do the computation x times and return best/worst/average results.
 		// Afterwards it should call python script to plot the results.
 		solution := methods.RandomSolution(nodes, distanceMatrix)
 		fitness := utils.Fitness(solution, nodes, distanceMatrix)
 
 		fmt.Println("Random solution (node indices):", solution)
 		fmt.Println("Fitness:", fitness)
+
+	case NearestNeighborEndOnly:
+		solution := methods.NearestNeighborEndOnly(nodes, distanceMatrix)
+		fitness := utils.Fitness(solution, nodes, distanceMatrix)
+
+		fmt.Println("Nearest neighbor end-only solution (node indices):", solution)
+		fmt.Println("Fitness:", fitness)
+
+	case NearestNeighborFlexible:
+		solution := methods.NearestNeighborFlexible(nodes, distanceMatrix)
+		fitness := utils.Fitness(solution, nodes, distanceMatrix)
+
+		fmt.Println("Nearest neighbor flexible solution (node indices):", solution)
+		fmt.Println("Fitness:", fitness)
+
 	default:
 		log.Fatalf("Unknown method: %s. ", method)
 	}
