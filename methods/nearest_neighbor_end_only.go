@@ -13,7 +13,7 @@ func NearestNeighborEndOnly(nodes []utils.Node, distanceMatrix [][]int) []int {
 	selectedIDs := make([]int, 0, numToSelect)
 
 	// Select a random starting node and add it to the solution
-	startNode := rand.Intn(numNodes)
+	startNode := rand.Intn(len(nodes))
 	selectedIDs = append(selectedIDs, nodes[startNode].ID)
 
 	// Keep track of visited nodes

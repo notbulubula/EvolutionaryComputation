@@ -4,63 +4,69 @@ import (
 	"evolutionary_computation/methods"
 	"evolutionary_computation/utils"
 	"fmt"
-	"log"
 	"os"
 )
 
-// Enum for methods
-const (
-	Random                  = "random"
-	NearestNeighborEndOnly  = "nearest_neighbor_end_only"
-	NearestNeighborFlexible = "nearest_neighbor_flexible"
-	GreedyCycle             = "greedy_cycle"
-)
+const iterations = 200
+
+// TODO: Change to distance matrix only
+type MethodFunc func([]utils.Node, [][]int) []int
+
+var methodsMap = map[string]MethodFunc{
+	"random":                   methods.RandomSolution,
+	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
+	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
+}
 
 func main() {
-	// Check for method and file arguments
 	if len(os.Args) < 3 {
-		log.Fatalf("Usage: go run main.go  <data_file.csv> <method>")
+		fmt.Printf("Usage: go run main.go  <data_file.csv> <method>")
 	}
 
 	file := os.Args[1]
 	method := os.Args[2]
 
-	// Load node data from CSV
 	nodes, err := utils.LoadNodes(file)
 	if err != nil {
-		log.Fatalf("Error loading nodes from %s: %v", file, err)
+		fmt.Printf("Error loading nodes from %s: %v", file, err)
 	}
 
-	// Calculate the distance matrix
 	distanceMatrix := utils.CalculateDistanceMatrix(nodes)
 
-	// Execute the chosen method
-	switch method {
-	case Random:
-		// TODO: This should be a function call with callable methods.
-		// Should do the computation x times and return best/worst/average results.
-		// Afterwards it should call python script to plot the results.
-		solution := methods.RandomSolution(nodes, distanceMatrix)
-		fitness := utils.Fitness(solution, nodes, distanceMatrix)
-
-		fmt.Println("Random solution (node indices):", solution)
-		fmt.Println("Fitness:", fitness)
-
-	case NearestNeighborEndOnly:
-		solution := methods.NearestNeighborEndOnly(nodes, distanceMatrix)
-		fitness := utils.Fitness(solution, nodes, distanceMatrix)
-
-		fmt.Println("Nearest neighbor end-only solution (node indices):", solution)
-		fmt.Println("Fitness:", fitness)
-
-	case NearestNeighborFlexible:
-		solution := methods.NearestNeighborFlexible(nodes, distanceMatrix)
-		fitness := utils.Fitness(solution, nodes, distanceMatrix)
-
-		fmt.Println("Nearest neighbor flexible solution (node indices):", solution)
-		fmt.Println("Fitness:", fitness)
-
-	default:
-		log.Fatalf("Unknown method: %s. ", method)
+	// Check if the provided method exists in the map
+	if methodFunc, ok := methodsMap[method]; ok {
+		runMethod(methodFunc, nodes, distanceMatrix)
+	} else {
+		fmt.Printf("Unknown method: %s. ", method)
 	}
+}
+
+// runMethod handles running the method multiple times and calculating the stats
+func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) {
+	var bestFitness, worstFitness, totalFitness int
+	var bestSolution, worstSolution []int
+
+	for i := 0; i < iterations; i++ {
+		solution := method(nodes, distanceMatrix)
+		fitness := utils.Fitness(solution, nodes, distanceMatrix)
+
+		// Update best/worst fitness
+		if i == 0 || fitness < bestFitness {
+			bestFitness = fitness
+			bestSolution = solution
+		}
+		if i == 0 || fitness > worstFitness {
+			worstFitness = fitness
+			worstSolution = solution
+		}
+		totalFitness += fitness
+	}
+
+	averageFitness := float32(totalFitness) / float32(iterations)
+
+	fmt.Printf("Best solution (node indices): %v\nBest fitness: %v\n", bestSolution, bestFitness)
+	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
+	fmt.Printf("Average fitness: %f\n", averageFitness)
+
+	// TODO: Call Python script for plotting results
 }
