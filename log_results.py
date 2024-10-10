@@ -1,9 +1,12 @@
-import json
 import os
-import datetime as dt
 import sys
+import json
+
+import numpy as np
 import pandas as pd
+import datetime as dt
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 def plot_solution(nodes, solution, title, save_path):
     """
@@ -12,12 +15,60 @@ def plot_solution(nodes, solution, title, save_path):
     title: title of the plot
     save_path: path to save the plot
     """
-    plt.figure(figsize=(10, 10))
-    plt.scatter(nodes.x, nodes.y, c="#5b7ebd")
-    for i in range(len(solution) - 1):
-        plt.plot([nodes.x[solution[i]], nodes.x[solution[i + 1]]], [nodes.y[solution[i]], nodes.y[solution[i + 1]]], c="black")
-    plt.plot([nodes.x[solution[-1]], nodes.x[solution[0]]], [nodes.y[solution[-1]], nodes.y[solution[0]]], c="black")
+    plt.figure(figsize=(10, 8))
+
+    # Set default opacity for nodes not in the solution
+    unused_opacity = 0.2
+
+    # Add opacity to nodes that are not part of the solution
+    all_node_indexes = set(range(len(nodes)))
+    solution_node_indexes = set(solution)
+    unused_nodes = list(all_node_indexes - solution_node_indexes)
+    
+    # Scatter all nodes, reducing opacity for unused nodes
+    plt.scatter(nodes.x[unused_nodes], nodes.y[unused_nodes], c="palevioletred", alpha=unused_opacity)
+    plt.scatter(nodes.x[solution], nodes.y[solution], c="palevioletred", alpha=1.0)  # Full opacity for used nodes
+
+    # Pre-calculate the total costs (Euclidean distance + node costs)
+    costs = []
+    for i in range(len(solution)):
+        node_a = solution[i]
+        node_b = solution[(i + 1) % len(solution)]  # Connects last node to the first
+
+        # Calculate Euclidean distance between the two nodes
+        dist = np.sqrt((nodes.x[node_a] - nodes.x[node_b]) ** 2 + (nodes.y[node_a] - nodes.y[node_b]) ** 2)
+
+        # Total cost = Euclidean distance + cost of the two nodes
+        total_cost = dist + nodes.cost[node_a] + nodes.cost[node_b]
+        costs.append(total_cost)
+
+    # Normalize costs for the color mapping
+    min_cost = min(costs)
+    max_cost = max(costs)
+
+    # Create a colormap (light to red)
+    norm = mcolors.Normalize(vmin=min_cost, vmax=max_cost)
+    cmap = plt.get_cmap('summer_r')  # 'Reds' goes from light to red
+
+    # Plot the solution's paths with colors based on the pre-calculated costs
+    for i in range(len(solution)):
+        node_a = solution[i]
+        node_b = solution[(i + 1) % len(solution)]
+
+        total_cost = costs[i]
+
+        # Map the cost to a color in the heatmap
+        color = cmap(norm(total_cost))
+
+        # Plot the edge with the heatmap color
+        plt.plot([nodes.x[node_a], nodes.x[node_b]], [nodes.y[node_a], nodes.y[node_b]], c=color)
+
     plt.title(title)
+    ax = plt.gca()
+    sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    plt.colorbar(sm, ax=ax, label="Cost (Euclidean + Node Costs)")
+
     plt.savefig(save_path)
     plt.close()
 
@@ -50,5 +101,16 @@ results["worst_solution"] = results.pop("worst_solution")
 with open(f"{current_folder}/results.json", "w") as f:
     json.dump(results, f, indent=4)
 
-plot_solution(nodes, results["best_solution"], f"{method.upper()}: best solution", f"{current_folder}/best_solution.png")
-plot_solution(nodes, results["worst_solution"], f"{method.upper()}: worst solution", f"{current_folder}/worst_solution.png")
+plot_solution(
+    nodes, 
+    results["best_solution"], 
+    f"{method.upper()}: best solution({results['best_fitness']})", 
+    f"{current_folder}/best_solution.png",
+    )
+
+plot_solution(
+    nodes, 
+    results["worst_solution"], 
+    f"{method.upper()}: worst solution({results['worst_fitness']})", 
+    f"{current_folder}/worst_solution.png",
+    )
