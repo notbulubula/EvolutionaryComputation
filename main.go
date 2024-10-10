@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"evolutionary_computation/methods"
 	"evolutionary_computation/utils"
 	"fmt"
 	"os"
+	"os/exec"
 )
 
 const iterations = 200
@@ -16,6 +18,14 @@ var methodsMap = map[string]MethodFunc{
 	"random":                   methods.RandomSolution,
 	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
+}
+
+type Results struct {
+	BestSolution   []int   `json:"best_solution"`
+	BestFitness    int     `json:"best_fitness"`
+	WorstSolution  []int   `json:"worst_solution"`
+	WorstFitness   int     `json:"worst_fitness"`
+	AverageFitness float32 `json:"average_fitness"`
 }
 
 func main() {
@@ -33,16 +43,43 @@ func main() {
 
 	distanceMatrix := utils.CalculateDistanceMatrix(nodes)
 
-	// Check if the provided method exists in the map
+	// If method exists, run it
 	if methodFunc, ok := methodsMap[method]; ok {
-		runMethod(methodFunc, nodes, distanceMatrix)
+		results := runMethod(methodFunc, nodes, distanceMatrix)
+
+		// Parse to JSON for Python to handle
+		jsonResults, err := json.Marshal(results)
+		if err != nil {
+			fmt.Printf("Error marshalling results: %v", err)
+			return
+		}
+
+		tempFile, err := os.CreateTemp("", "results.json")
+		if err != nil {
+			fmt.Printf("Error creating temp file: %v", err)
+			return
+		}
+		defer tempFile.Close()
+
+		if _, err := tempFile.Write(jsonResults); err != nil {
+			fmt.Printf("Error writing to temp file: %v", err)
+			return
+		}
+
+		cmd := exec.Command("python", "log_results.py", file, tempFile.Name(), method)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Error running python script: %v", err)
+			return
+		}
 	} else {
 		fmt.Printf("Unknown method: %s. ", method)
 	}
 }
 
 // runMethod handles running the method multiple times and calculating the stats
-func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) {
+func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) Results{
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
 
@@ -68,5 +105,11 @@ func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) {
 	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
 	fmt.Printf("Average fitness: %f\n", averageFitness)
 
-	// TODO: Call Python script for plotting results
+	return Results{
+		BestSolution:   bestSolution,
+		BestFitness:    bestFitness,
+		WorstSolution:  worstSolution,
+		WorstFitness:   worstFitness,
+		AverageFitness: averageFitness,
+	}
 }
