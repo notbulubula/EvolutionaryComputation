@@ -68,6 +68,7 @@ def plot_solution(nodes, solution, title, save_path):
     sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
     plt.colorbar(sm, ax=ax, label="Cost (Euclidean + Node Costs)")
+    plt.tight_layout()
 
     plt.savefig(save_path)
     plt.close()
