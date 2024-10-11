@@ -3,7 +3,7 @@ package utils
 import "math"
 
 // CalculateDistanceMatrix returns a matrix with rounded Euclidean distances.
-func CalculateDistanceMatrix(nodes []Node) [][]int {
+func CalculateCostMatrix(nodes []Node) [][]int {
 	numNodes := len(nodes)
 	matrix := make([][]int, numNodes)
 
@@ -11,6 +11,9 @@ func CalculateDistanceMatrix(nodes []Node) [][]int {
 		matrix[i] = make([]int, numNodes)
 		for j := 0; j < numNodes; j++ {
 			matrix[i][j] = CalculateDistance(nodes[i], nodes[j])
+
+			// Add the cost of the destination node to the distance
+			matrix[i][j] += nodes[j].Cost
 		}
 	}
 	return matrix
