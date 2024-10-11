@@ -89,8 +89,9 @@ nodes.columns = ["x", "y", "cost"]
 results = json.load(open(results_file, "r"))
 
 # folder management
-timestamp = dt.datetime.now().strftime("%m%d_%H%M")
-current_folder = f"logs/{method}_{timestamp}"
+timestamp = dt.datetime.now().strftime("%m%d")
+file = data_file.replace(".csv", "").replace("data/", "")
+current_folder = f"logs/{method}_{timestamp}/{file}"
 os.makedirs(current_folder, exist_ok=True)
 
 # Save results to results.json
