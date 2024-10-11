@@ -15,9 +15,10 @@ const iterations = 200
 type MethodFunc func([]utils.Node, [][]int) []int
 
 var methodsMap = map[string]MethodFunc{
-	"random":                   methods.RandomSolution,
+	"random":                    methods.RandomSolution,
 	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
+	"greedy_cycle":              methods.GreedyCycle,
 }
 
 type Results struct {
@@ -79,7 +80,7 @@ func main() {
 }
 
 // runMethod handles running the method multiple times and calculating the stats
-func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) Results{
+func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
 
