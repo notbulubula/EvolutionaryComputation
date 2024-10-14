@@ -1,7 +1,7 @@
 import os
 import json
 
-root_dir = 'logs'
+root_dir = '../logs'
 
 def process_results_json(json_path, tex_path):
     with open(json_path, 'r') as json_file:

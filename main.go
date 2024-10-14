@@ -76,7 +76,7 @@ func main() {
 			return
 		}
 
-		cmd := exec.Command("python", "log_results.py", file, tempFile.Name(), method)
+		cmd := exec.Command("python3", "scripts/log_results.py", file, tempFile.Name(), method)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
