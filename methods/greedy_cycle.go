@@ -6,7 +6,7 @@ import "evolutionary_computation/utils"
 // It builds a cycle by repeatedly inserting the nearest vertex that minimizes the cycle length increase.
 // The process continues until all vertices are added to form a complete cycle.
 func GreedyCycle(distanceMatrix [][]int, startNode int) []int {
-	
+
 	numNodes, numToSelect, selectedIDs, visited := utils.GetInitialState(distanceMatrix, startNode)
 
 	// Continue adding the vertices until all are selected

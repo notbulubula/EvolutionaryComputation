@@ -5,9 +5,9 @@ import (
 	"evolutionary_computation/methods"
 	"evolutionary_computation/utils"
 	"fmt"
-	"strconv"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 var iterations = 200
@@ -20,6 +20,7 @@ var methodsMap = map[string]MethodFunc{
 	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
 	"greedy_cycle":              methods.GreedyCycle,
+	"greedy2regret":             methods.GreedyTwoRegret,
 }
 
 type Results struct {
@@ -44,7 +45,6 @@ func main() {
 	}
 	file = os.Args[1]
 	method = os.Args[2]
-	
 
 	nodes, err := utils.LoadNodes(file)
 	if err != nil {
@@ -95,7 +95,6 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
-
 
 		solution := method(costMatrix, startNode)
 		fitness := utils.Fitness(solution, costMatrix)
