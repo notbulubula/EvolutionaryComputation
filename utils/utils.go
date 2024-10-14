@@ -18,3 +18,11 @@ func GetInitialState(costMatrix [][]int, startNode int) (int, int, []int, map[in
 
 	return numNodes, numToSelect, solution, visited
 }
+
+func InsertAt(slice []int, index int, element int) []int {
+	if index < 0 || index > len(slice) {
+		// Handle index out of bounds
+		return slice
+	}
+	return append(slice[:index], append([]int{element}, slice[index:]...)...)
+}

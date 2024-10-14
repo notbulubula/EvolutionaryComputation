@@ -16,10 +16,10 @@ func GreedyTwoRegret(distanceMatrix [][]int, startNode int) []int {
 		regret2, insertPos2 := getBestInsertionCost(best2, solution, distanceMatrix)
 
 		if regret1 >= regret2 {
-			solution = append(solution[:insertPos1], append([]int{best1}, solution[insertPos1:]...)...)
+			solution = utils.InsertAt(solution, insertPos1, best1)
 			visited[best1] = true
 		} else {
-			solution = append(solution[:insertPos2], append([]int{best2}, solution[insertPos2:]...)...)
+			solution = utils.InsertAt(solution, insertPos2, best2)
 			visited[best2] = true
 		}
 	}
