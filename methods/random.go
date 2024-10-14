@@ -5,7 +5,7 @@ import (
 )
 
 // RandomSolution generates a random solution and returns a list of node IDs in the selected order.
-func RandomSolution(distanceMatrix [][]int) []int {
+func RandomSolution(distanceMatrix [][]int, startNode int) []int {
 	numNodes := len(distanceMatrix)
 	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
 	selectedIDs := make([]int, 0, numToSelect)

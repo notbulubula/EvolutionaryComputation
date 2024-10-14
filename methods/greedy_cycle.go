@@ -1,19 +1,14 @@
 package methods
 
-import (
-	"math/rand"
-)
 
 // GreedyCycle function starts by selecting a random vertex as the starting point.
 // It builds a cycle by repeatedly inserting the nearest vertex that minimizes the cycle length increase.
 // The process continues until all vertices are added to form a complete cycle.
-func GreedyCycle(distanceMatrix [][]int) []int {
+func GreedyCycle(distanceMatrix [][]int, startNode int) []int {
 	numNodes := len(distanceMatrix)
 	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
 	selectedIDs := make([]int, 0, numToSelect)
 
-	// Select a random starting node and add it to the solution
-	startNode := rand.Intn(numNodes)
 	selectedIDs = append(selectedIDs, startNode)
 
 	// Keep track of visited nodes

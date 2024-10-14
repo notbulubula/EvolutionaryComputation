@@ -1,18 +1,12 @@
 package methods
 
-import (
-	"math/rand"
-)
-
 // NearestNeighborFlexible generates a solution using the nearest neighbor heuristic, starting from a random node.
 // The algorithm selects the nearest neighbor of any node in the solution until half of the nodes are selected.
-func NearestNeighborFlexible(distanceMatrix [][]int) []int {
+func NearestNeighborFlexible(distanceMatrix [][]int, startNode int) []int {
 	numNodes := len(distanceMatrix)
 	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
 	selectedIDs := make([]int, 0, numToSelect)
 
-	// Select a random starting node and add it to the solution
-	startNode := rand.Intn(numNodes)
 	selectedIDs = append(selectedIDs, startNode)
 
 	// Keep track of visited nodes

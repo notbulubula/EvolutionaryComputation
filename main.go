@@ -5,14 +5,15 @@ import (
 	"evolutionary_computation/methods"
 	"evolutionary_computation/utils"
 	"fmt"
+	"strconv"
 	"os"
 	"os/exec"
 )
 
-const iterations = 200
+var iterations = 200
 
 // TODO: Change to distance matrix only
-type MethodFunc func([][]int) []int
+type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
 	"random":                    methods.RandomSolution,
@@ -30,12 +31,20 @@ type Results struct {
 }
 
 func main() {
+	var file, method string
 	if len(os.Args) < 3 {
-		fmt.Printf("Usage: go run main.go  <data_file.csv> <method>")
-	}
+		fmt.Printf("Usage: go run main.go  <data_file.csv> <method>| optional <num_iterations>")
+	} else if len(os.Args) == 4 {
+		i, err := strconv.Atoi(os.Args[3])
 
-	file := os.Args[1]
-	method := os.Args[2]
+		if err != nil {
+			fmt.Printf("Couldn't convert num iterations to int %v", err)
+		}
+		iterations = i
+	}
+	file = os.Args[1]
+	method = os.Args[2]
+	
 
 	nodes, err := utils.LoadNodes(file)
 	if err != nil {
@@ -67,7 +76,7 @@ func main() {
 			return
 		}
 
-		cmd := exec.Command("python", "log_results.py", file, tempFile.Name(), method)
+		cmd := exec.Command("python3", "scripts/log_results.py", file, tempFile.Name(), method)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
@@ -85,7 +94,10 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestSolution, worstSolution []int
 
 	for i := 0; i < iterations; i++ {
-		solution := method(costMatrix)
+		startNode := i % len(costMatrix)
+
+
+		solution := method(costMatrix, startNode)
 		fitness := utils.Fitness(solution, costMatrix)
 
 		// Update best/worst fitness
