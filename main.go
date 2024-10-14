@@ -13,7 +13,7 @@ import (
 var iterations = 200
 
 // TODO: Change to distance matrix only
-type MethodFunc func([][]int) []int
+type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
 	"random":                    methods.RandomSolution,
@@ -94,7 +94,10 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestSolution, worstSolution []int
 
 	for i := 0; i < iterations; i++ {
-		solution := method(costMatrix)
+		startNode := i % len(costMatrix)
+
+
+		solution := method(costMatrix, startNode)
 		fitness := utils.Fitness(solution, costMatrix)
 
 		// Update best/worst fitness
