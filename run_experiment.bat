@@ -2,7 +2,7 @@ setlocal
 @echo off
 
 set instances=data/tspA.csv data/tspB.csv
-set methods=random nearest_neighbor_end_only nearest_neighbor_flexible greedy_cycle
+set methods=random nearest_neighbor_end_only nearest_neighbor_flexible, greedy_cycle
 
 
 for %%i in (%instances%) do (

@@ -15,21 +15,29 @@ def plot_solution(nodes, solution, title, save_path):
     title: title of the plot
     save_path: path to save the plot
     """
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 6))
 
     # Set default opacity for nodes not in the solution
     unused_opacity = 0.2
 
-    # Add opacity to nodes that are not part of the solution
-    all_node_indexes = set(range(len(nodes)))
-    solution_node_indexes = set(solution)
-    unused_nodes = list(all_node_indexes - solution_node_indexes)
-    
-    # Scatter all nodes, reducing opacity for unused nodes
-    plt.scatter(nodes.x[unused_nodes], nodes.y[unused_nodes], c="palevioletred", alpha=unused_opacity)
-    plt.scatter(nodes.x[solution], nodes.y[solution], c="palevioletred", alpha=1.0)  # Full opacity for used nodes
+    # Normalize the sizes based on node costs
+    min_cost = nodes.cost.min()
+    max_cost = nodes.cost.max()
 
-    # Pre-calculate the total costs (Euclidean distance + node costs)
+    # Calculate sizes based on normalized costs, using a size range (e.g., 50 to 500)
+    size_range = (50, 500)  # Minimum and maximum size for the dots
+    sizes = size_range[0] + (size_range[1] - size_range[0]) * (nodes.cost - min_cost) / (max_cost - min_cost)
+
+    # Set sizes for all nodes
+    # Scatter all unused nodes, reducing opacity
+    unused_nodes = list(set(range(len(nodes))) - set(solution))
+    plt.scatter(nodes.x[unused_nodes], nodes.y[unused_nodes], c="palevioletred", s=sizes[unused_nodes], alpha=unused_opacity)
+
+    # Full opacity for used nodes with size based on their cost
+    plt.scatter(nodes.x[solution], nodes.y[solution], c="palevioletred", s=sizes[solution], alpha=1.0)
+
+
+    # Pre-calculate the vertices costs (Euclidean distance)
     costs = []
     for i in range(len(solution)):
         node_a = solution[i]
@@ -38,9 +46,7 @@ def plot_solution(nodes, solution, title, save_path):
         # Calculate Euclidean distance between the two nodes
         dist = np.sqrt((nodes.x[node_a] - nodes.x[node_b]) ** 2 + (nodes.y[node_a] - nodes.y[node_b]) ** 2)
 
-        # Total cost = Euclidean distance + cost of the two nodes
-        total_cost = dist + nodes.cost[node_a] + nodes.cost[node_b]
-        costs.append(total_cost)
+        costs.append(dist)
 
     # Normalize costs for the color mapping
     min_cost = min(costs)
@@ -65,9 +71,10 @@ def plot_solution(nodes, solution, title, save_path):
 
     plt.title(title)
     ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
     sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
-    plt.colorbar(sm, ax=ax, label="Cost (Euclidean + Node Costs)")
+    plt.colorbar(sm, ax=ax, label="Cost (Euclidean distance)")
     plt.tight_layout()
 
     plt.savefig(save_path)

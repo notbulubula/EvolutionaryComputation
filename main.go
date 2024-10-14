@@ -12,7 +12,7 @@ import (
 const iterations = 200
 
 // TODO: Change to distance matrix only
-type MethodFunc func([]utils.Node, [][]int) []int
+type MethodFunc func([][]int) []int
 
 var methodsMap = map[string]MethodFunc{
 	"random":                    methods.RandomSolution,
@@ -42,11 +42,11 @@ func main() {
 		fmt.Printf("Error loading nodes from %s: %v", file, err)
 	}
 
-	distanceMatrix := utils.CalculateDistanceMatrix(nodes)
+	costMatrix := utils.CalculateCostMatrix(nodes)
 
 	// If method exists, run it
 	if methodFunc, ok := methodsMap[method]; ok {
-		results := runMethod(methodFunc, nodes, distanceMatrix)
+		results := runMethod(methodFunc, costMatrix)
 
 		// Parse to JSON for Python to handle
 		jsonResults, err := json.Marshal(results)
@@ -80,13 +80,13 @@ func main() {
 }
 
 // runMethod handles running the method multiple times and calculating the stats
-func runMethod(method MethodFunc, nodes []utils.Node, distanceMatrix [][]int) Results {
+func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
 
 	for i := 0; i < iterations; i++ {
-		solution := method(nodes, distanceMatrix)
-		fitness := utils.Fitness(solution, nodes, distanceMatrix)
+		solution := method(costMatrix)
+		fitness := utils.Fitness(solution, costMatrix)
 
 		// Update best/worst fitness
 		if i == 0 || fitness < bestFitness {
