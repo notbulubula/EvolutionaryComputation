@@ -10,6 +10,10 @@ func GetInitialState(costMatrix [][]int, startNode int) (int, int, []int, map[in
 
 	solution = append(solution, startNode)
 	visited := make(map[int]bool)
+
+	for i := 0; i < numNodes; i++ {
+		visited[i] = false
+	}
 	visited[startNode] = true
 
 	return numNodes, numToSelect, solution, visited
