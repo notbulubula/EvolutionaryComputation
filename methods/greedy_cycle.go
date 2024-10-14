@@ -1,19 +1,13 @@
 package methods
 
+import "evolutionary_computation/utils"
 
 // GreedyCycle function starts by selecting a random vertex as the starting point.
 // It builds a cycle by repeatedly inserting the nearest vertex that minimizes the cycle length increase.
 // The process continues until all vertices are added to form a complete cycle.
 func GreedyCycle(distanceMatrix [][]int, startNode int) []int {
-	numNodes := len(distanceMatrix)
-	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
-	selectedIDs := make([]int, 0, numToSelect)
-
-	selectedIDs = append(selectedIDs, startNode)
-
-	// Keep track of visited nodes
-	visited := make(map[int]bool)
-	visited[startNode] = true
+	
+	numNodes, numToSelect, selectedIDs, visited := utils.GetInitialState(distanceMatrix, startNode)
 
 	// Continue adding the vertices until all are selected
 	for len(selectedIDs) < numToSelect {
