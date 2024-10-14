@@ -21,6 +21,7 @@ var methodsMap = map[string]MethodFunc{
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
 	"greedy_cycle":              methods.GreedyCycle,
 	"greedy2regret":             methods.GreedyTwoRegret,
+	"greedy2regret_weights": 	 methods.GreedyTwoRegretWithWeights,
 }
 
 type Results struct {
