@@ -4,7 +4,7 @@ import (
 	"evolutionary_computation/utils"
 	"math"
 	"sort"
-	"fmt"
+	// "fmt"
 )
 
 func GreedyTwoRegret(distanceMatrix [][]int, startNode int) []int {
@@ -30,36 +30,28 @@ func GreedyTwoRegret(distanceMatrix [][]int, startNode int) []int {
 	return solution
 }
 
-func GreedyTwoRegretWithWeights(distanceMatrix [][]int, startNode int) []int {
+func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 	_, numToSelect, solution, visited := utils.GetInitialState(distanceMatrix, startNode)
-
+	var weightRegret int = -1
+	var weightChange int = 1 
 
 	for len(solution) < numToSelect {
-		currentFitness := utils.Fitness(solution, distanceMatrix)
-
 		best1, best2 := twoBestCandidates(visited, solution, distanceMatrix)
-		
+
 		bestCost1, secondBest1, insertPos1 := getBestInsertionCost(best1, solution, distanceMatrix)
 		regret1 := bestCost1 - secondBest1
-		best1Solution := utils.InsertAt(solution, insertPos1, best1)
-		best1Fitness := utils.Fitness(best1Solution, distanceMatrix)
-		
 		bestCost2, secondBest2, insertPos2 := getBestInsertionCost(best2, solution, distanceMatrix)
 		regret2 := bestCost2 - secondBest2
-		best2Solution := utils.InsertAt(solution, insertPos2, best2)
-		best2Fitness := utils.Fitness(best2Solution, distanceMatrix)
 
-		weight1 := calculateWeight(regret1, best1Fitness, currentFitness)
-		weight2 := calculateWeight(regret2, best2Fitness, currentFitness)
+		totalCost1 := weightRegret * regret1 + weightChange * bestCost1 
+		totalCost2 := weightRegret * regret2 + weightChange * bestCost2
 
-		if weight1 >= weight2 {
-			solution = utils.InsertAt(solution, insertPos1, best1)
+		if totalCost1 <= totalCost2 {
+			solution =  utils.InsertAt(solution, insertPos1, best1)
 			visited[best1] = true
-			fmt.Printf("Appended %v, visited? %v \n", best1, visited[best1])
 		} else {
 			solution = utils.InsertAt(solution, insertPos2, best2)
 			visited[best2] = true
-			fmt.Printf("Appended %v, visited? %v \n", best2, visited[best2])
 		}
 
 	}

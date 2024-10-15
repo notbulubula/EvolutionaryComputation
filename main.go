@@ -21,7 +21,7 @@ var methodsMap = map[string]MethodFunc{
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
 	"greedy_cycle":              methods.GreedyCycle,
 	"greedy2regret":             methods.GreedyTwoRegret,
-	"greedy2regret_weights": 	 methods.GreedyTwoRegretWithWeights,
+	"greedy2regret_weights": 	 methods.GreedyRegretWeight,
 }
 
 type Results struct {
@@ -77,7 +77,17 @@ func main() {
 			return
 		}
 
-		cmd := exec.Command("python3", "scripts/log_results.py", file, tempFile.Name(), method)
+		pythonCmd := "python"
+		if _, err := exec.LookPath("python"); err != nil {
+			if _, err := exec.LookPath("python3"); err == nil {
+				pythonCmd = "python3"
+			} else {
+				fmt.Println("Error: Neither python3 nor python is installed or available in PATH.")
+				return
+			}
+		}
+
+		cmd := exec.Command(pythonCmd, "scripts/log_results.py", file, tempFile.Name(), method)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
