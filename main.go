@@ -5,14 +5,14 @@ import (
 	"evolutionary_computation/methods"
 	"evolutionary_computation/utils"
 	"fmt"
-	"strconv"
+	"log"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 var iterations = 200
 
-// TODO: Change to distance matrix only
 type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
@@ -20,6 +20,8 @@ var methodsMap = map[string]MethodFunc{
 	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
 	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
 	"greedy_cycle":              methods.GreedyCycle,
+	"greedy2regret":             methods.GreedyTwoRegret,
+	"greedy2regret_weights": 	 methods.GreedyRegretWeight,
 }
 
 type Results struct {
@@ -31,64 +33,46 @@ type Results struct {
 }
 
 func main() {
-	var file, method string
-	if len(os.Args) < 3 {
-		fmt.Printf("Usage: go run main.go  <data_file.csv> <method>| optional <num_iterations>")
-	} else if len(os.Args) == 4 {
-		i, err := strconv.Atoi(os.Args[3])
+	inputFile, methodName := parseArgs()
 
-		if err != nil {
-			fmt.Printf("Couldn't convert num iterations to int %v", err)
-		}
-		iterations = i
-	}
-	file = os.Args[1]
-	method = os.Args[2]
-	
-
-	nodes, err := utils.LoadNodes(file)
+	nodes, err := utils.LoadNodes(inputFile)
 	if err != nil {
-		fmt.Printf("Error loading nodes from %s: %v", file, err)
+		log.Fatalf("Error loading nodes from %s: %v", inputFile, err)
 	}
 
 	costMatrix := utils.CalculateCostMatrix(nodes)
 
-	// If method exists, run it
-	if methodFunc, ok := methodsMap[method]; ok {
+	if methodFunc, ok := methodsMap[methodName]; ok {
 		results := runMethod(methodFunc, costMatrix)
 
-		// Parse to JSON for Python to handle
 		jsonResults, err := json.Marshal(results)
 		if err != nil {
-			fmt.Printf("Error marshalling results: %v", err)
-			return
+			log.Fatalf("Error marshalling results: %v", err)
 		}
 
 		tempFile, err := os.CreateTemp("", "results.json")
 		if err != nil {
-			fmt.Printf("Error creating temp file: %v", err)
-			return
+			log.Fatalf("Error creating temp file: %v", err)
 		}
 		defer tempFile.Close()
 
 		if _, err := tempFile.Write(jsonResults); err != nil {
-			fmt.Printf("Error writing to temp file: %v", err)
-			return
+			log.Fatalf("Error writing to temp file: %v", err)
 		}
 
-		cmd := exec.Command("python3", "scripts/log_results.py", file, tempFile.Name(), method)
+		pythonCmd := detectPython()
+
+		cmd := exec.Command(pythonCmd, "scripts/log_results.py", inputFile, tempFile.Name(), methodName)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("Error running python script: %v", err)
-			return
+			log.Fatalf("Error running python script: %v", err)
 		}
 	} else {
-		fmt.Printf("Unknown method: %s. ", method)
+		log.Fatalf("Unknown method: %s", methodName)
 	}
 }
 
-// runMethod handles running the method multiple times and calculating the stats
 func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
@@ -96,11 +80,9 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
 
-
 		solution := method(costMatrix, startNode)
 		fitness := utils.Fitness(solution, costMatrix)
 
-		// Update best/worst fitness
 		if i == 0 || fitness < bestFitness {
 			bestFitness = fitness
 			bestSolution = solution
@@ -125,4 +107,35 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		WorstFitness:   worstFitness,
 		AverageFitness: averageFitness,
 	}
+}
+
+func detectPython() string {
+	pythonCmd := "python3"
+	if _, err := exec.LookPath("python3"); err != nil {
+		if _, err := exec.LookPath("python"); err == nil {
+			pythonCmd = "python"
+		} else {
+			log.Fatal("Error: Neither python3 nor python is installed or available in PATH.")
+		}
+	}
+	return pythonCmd
+}
+
+func parseArgs() (string, string) {
+	if len(os.Args) < 3 {
+		log.Fatalf("Usage: go run main.go  <data_file.csv> <method>| optional <num_iterations>\n")
+	}
+
+	file := os.Args[1]
+	method := os.Args[2]
+
+	if len(os.Args) == 4 {
+		i, err := strconv.Atoi(os.Args[3])
+		if err != nil {
+			log.Fatalf("Couldn't convert num iterations to int: %v", err)
+		}
+		iterations = i
+	}
+
+	return file, method
 }
