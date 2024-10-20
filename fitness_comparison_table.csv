@@ -1,0 +1,9 @@
+method,dataset,calculated_fitness,excel_fitness,match
+Greedy Cycle,TSPA,71488,71488.0,True
+Greedy Cycle,tspB,49394,49394.0,True
+Nearest Neighbor End Only,TSPA,83436,83436.0,True
+Nearest Neighbor End Only,tspB,52323,52323.0,True
+Nearest Neighbor Flexible,TSPA,71179,71179.0,True
+Nearest Neighbor Flexible,tspB,44417,44417.0,True
+Random,TSPA,233508,233508.0,True
+Random,tspB,183663,183663.0,True
