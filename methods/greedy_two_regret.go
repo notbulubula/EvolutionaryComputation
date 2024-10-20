@@ -32,8 +32,8 @@ func GreedyTwoRegret(distanceMatrix [][]int, startNode int) []int {
 
 func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 	_, numToSelect, solution, visited := utils.GetInitialState(distanceMatrix, startNode)
-	var weightRegret int = -1
-	var weightChange int = 1 
+	var weightRegret float32 = -4 // < -3 good for TSP_A
+	var weightChange float32 = 1 // >1 good for TSP_B, 
 
 	for len(solution) < numToSelect {
 		best1, best2 := twoBestCandidates(visited, solution, distanceMatrix)
@@ -43,8 +43,8 @@ func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 		bestCost2, secondBest2, insertPos2 := getBestInsertionCost(best2, solution, distanceMatrix)
 		regret2 := bestCost2 - secondBest2
 
-		totalCost1 := weightRegret * regret1 + weightChange * bestCost1 
-		totalCost2 := weightRegret * regret2 + weightChange * bestCost2
+		totalCost1 := weightRegret * float32(regret1) + weightChange * float32(bestCost1) 
+		totalCost2 := weightRegret * float32(regret2) + weightChange * float32(bestCost2)
 
 		if totalCost1 <= totalCost2 {
 			solution =  utils.InsertAt(solution, insertPos1, best1)
