@@ -9,7 +9,7 @@ root_dir = 'logs'
 def check_solution_in_excel(excel_path, json_data, instance_name, method_name):
     app = xw.App(visible=False)
     wb = xw.Book(excel_path)
-    sheet_name = 'TSPA' if 'TSPA' in instance_name else 'TSPB'
+    sheet_name = 'TSPA' if 'tspA' in instance_name else 'TSPB'
     sheet = wb.sheets[sheet_name]
     
     # Start inserting the nodes in the 'List of nodes' column (column F), starting at row 3

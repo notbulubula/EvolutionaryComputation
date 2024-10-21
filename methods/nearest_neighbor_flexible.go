@@ -1,17 +1,11 @@
 package methods
 
+import "evolutionary_computation/utils"
+
 // NearestNeighborFlexible generates a solution using the nearest neighbor heuristic, starting from a random node.
 // The algorithm selects the nearest neighbor of any node in the solution until half of the nodes are selected.
 func NearestNeighborFlexible(distanceMatrix [][]int, startNode int) []int {
-	numNodes := len(distanceMatrix)
-	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
-	selectedIDs := make([]int, 0, numToSelect)
-
-	selectedIDs = append(selectedIDs, startNode)
-
-	// Keep track of visited nodes
-	visited := make(map[int]bool)
-	visited[startNode] = true
+	numNodes, numToSelect, selectedIDs, visited := utils.GetInitialState(distanceMatrix, startNode)
 
 	// Continue adding the nearest neighbor until half of the nodes are selected
 	for len(selectedIDs) < numToSelect {
