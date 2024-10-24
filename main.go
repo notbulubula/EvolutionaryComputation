@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"evolutionary_computation/methods"
+	"evolutionary_computation/methods/local_search"
 	"evolutionary_computation/utils"
 	"fmt"
 	"log"
@@ -16,12 +17,20 @@ var iterations = 200
 type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
-	"random":                    methods.RandomSolution,
-	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
-	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
-	"greedy_cycle":              methods.GreedyCycle,
-	"greedy2regret":             methods.GreedyTwoRegret,
-	"greedy2regret_weights": 	 methods.GreedyRegretWeight,
+	"random":                     methods.RandomSolution,
+	"nearest_neighbour_end_only": methods.NearestNeighborEndOnly,
+	"nearest_neighbour_flexible": methods.NearestNeighborFlexible,
+	"greedy_cycle":               methods.GreedyCycle,
+	"greedy2regret":              methods.GreedyTwoRegret,
+	"greedy2regret_weights":      methods.GreedyRegretWeight,
+	"LS_random_greedy_intranode": local_search.RandomGreedyIntraNode,
+	// "random_greedy_intraedge":   methods.RandomGreedyIntraEdge,
+	// "random_steepest_intranode": methods.RandomSteepestIntraNode,
+	// "random_steepest_intraedge": methods.RandomSteepestIntraEdge,
+	"LS_nearest_neighbour_flexible_greedy_intranode": local_search.NearestNeighbourFlexibleGreedyIntraNode,
+	// "nearest_neighbour_flexible_greedy_intraedge": methods.NearestNeighbourFlexibleGreedyIntraEdge,
+	// "nearest_neighbour_flexible_steepest_intranode": methods.NearestNeighbourFlexibleSteepestIntraNode,
+	// "nearest_neighbour_flexible_steepest_intraedge": methods.NearestNeighbourFlexibleSteepestIntraEdge,
 }
 
 type Results struct {
