@@ -4,7 +4,7 @@ import (
 	"evolutionary_computation/methods"
 )
 
-func RandomGreedyIntraNode(distanceMatrix [][]int, startNode int) []int {
+func RandomGreedyIntraEdge(distanceMatrix [][]int, startNode int) []int {
 	// Run random function to get the initial solution
 	selectedIDs := methods.RandomSolution(distanceMatrix, startNode)
 	visted := make(map[int]bool)
@@ -22,9 +22,9 @@ func RandomGreedyIntraNode(distanceMatrix [][]int, startNode int) []int {
 	}
 
 	// Run local search function as long as there is improvement
-	solution, improved := GreedyMove(selectedIDs, visted, unselected, distanceMatrix, "NodeExchange")
+	solution, improved := GreedyMove(selectedIDs, visted, unselected, distanceMatrix, "EdgeExchange")
 	for improved {
-		solution, improved = GreedyMove(solution, visted, unselected, distanceMatrix, "NodeExchange")
+		solution, improved = GreedyMove(solution, visted, unselected, distanceMatrix, "EdgeExchange")
 
 	}
 	return solution

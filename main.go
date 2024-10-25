@@ -24,13 +24,13 @@ var methodsMap = map[string]MethodFunc{
 	"greedy2regret":              methods.GreedyTwoRegret,
 	"greedy2regret_weights":      methods.GreedyRegretWeight,
 	"LS_random_greedy_intranode": local_search.RandomGreedyIntraNode,
-	// "random_greedy_intraedge":   methods.RandomGreedyIntraEdge,
-	// "random_steepest_intranode": methods.RandomSteepestIntraNode,
-	// "random_steepest_intraedge": methods.RandomSteepestIntraEdge,
+	"LS_random_greedy_intraedge": local_search.RandomGreedyIntraEdge,
+	// "random_steepest_intranode": local_search.RandomSteepestIntraNode,
+	// "random_steepest_intraedge": local_search.RandomSteepestIntraEdge,
 	"LS_nearest_neighbour_flexible_greedy_intranode": local_search.NearestNeighbourFlexibleGreedyIntraNode,
-	// "nearest_neighbour_flexible_greedy_intraedge": methods.NearestNeighbourFlexibleGreedyIntraEdge,
-	// "nearest_neighbour_flexible_steepest_intranode": methods.NearestNeighbourFlexibleSteepestIntraNode,
-	// "nearest_neighbour_flexible_steepest_intraedge": methods.NearestNeighbourFlexibleSteepestIntraEdge,
+	"LS_nearest_neighbour_flexible_greedy_intraedge": local_search.NearestNeighbourFlexibleGreedyIntraEdge,
+	// "nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
+	// "nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
 }
 
 type Results struct {

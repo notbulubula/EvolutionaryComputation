@@ -25,7 +25,7 @@ func generateMoves(solution []int, visited map[int]bool, unselectedNodes []int, 
 	// Intra-route: two-edges exchange
 	if intraMoveType == "EdgeExchange" {
 		for i := 0; i < n; i++ {
-			for j := i + 1; j < n; j++ {
+			for j := i + 2; j < n; j++ {
 				moves = append(moves, Move{"twoEdgesExchange", i, j})
 			}
 		}
@@ -80,8 +80,11 @@ func deltaTwoEdgesExchange(solution []int, i, j int, distanceMatrix [][]int) int
 	nodeJ := solution[j]
 	nextJ := solution[(j+1)%n]
 
-	costBefore := distanceMatrix[nodeI][nextI] + distanceMatrix[nodeJ][nextJ]
-	costAfter := distanceMatrix[nodeI][nodeJ] + distanceMatrix[nextI][nextJ]
+	costBefore := distanceMatrix[nodeI][nextI] - distanceMatrix[nextI][nextI] +
+		distanceMatrix[nodeJ][nextJ] - distanceMatrix[nextJ][nextJ]
+
+	costAfter := distanceMatrix[nodeI][nodeJ] - distanceMatrix[nodeJ][nodeJ] +
+		distanceMatrix[nextI][nextJ] - distanceMatrix[nextJ][nextJ]
 
 	return costAfter - costBefore
 }
@@ -103,9 +106,17 @@ func applyMove(solution []int, move Move, unselectedNodes *[]int) {
 	case "twoNodesExchange":
 		solution[move.i], solution[move.j] = solution[move.j], solution[move.i]
 	case "twoEdgesExchange":
-		solution[move.i+1], solution[move.j] = solution[move.j], solution[move.i+1]
+		reverseSegment(solution, move.i+1, move.j)
 	case "interRouteExchange":
 		solution[move.i], (*unselectedNodes)[move.j] = (*unselectedNodes)[move.j], solution[move.i]
+	}
+}
+
+func reverseSegment(solution []int, i, j int) {
+	for i < j {
+		solution[i], solution[j] = solution[j], solution[i]
+		i++
+		j--
 	}
 }
 
