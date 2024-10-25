@@ -9,7 +9,7 @@ type Move struct {
 	i, j     int // indices of nodes involved
 }
 
-func generateMoves(solution []int, visited map[int]bool, unselectedNodes []int, intraMoveType string) []Move {
+func generateMoves(solution []int, unselectedNodes []int, intraMoveType string) []Move {
 	var moves []Move
 	n := len(solution)
 
@@ -32,11 +32,11 @@ func generateMoves(solution []int, visited map[int]bool, unselectedNodes []int, 
 	}
 
 	// Inter-route: exchange between selected and unselected nodes
-	// for i := 0; i < n; i++ {
-	// 	for _, unselected := range unselectedNodes {
-	// 		moves = append(moves, Move{"interRouteExchange", i, unselected})
-	// 	}
-	// }
+	for i := 0; i < n; i++ {
+		for _, unselected := range unselectedNodes {
+			moves = append(moves, Move{"interRouteExchange", i, unselected})
+		}
+	}
 
 	rand.Shuffle(len(moves), func(i, j int) { moves[i], moves[j] = moves[j], moves[i] })
 
@@ -95,8 +95,13 @@ func deltaInterRouteExchange(solution []int, selectedIndex int, unselectedNode i
 	prevSelected := solution[(selectedIndex-1+n)%n]
 	nextSelected := solution[(selectedIndex+1)%n]
 
-	costBefore := distanceMatrix[prevSelected][solution[selectedIndex]] + distanceMatrix[solution[selectedIndex]][nextSelected]
-	costAfter := distanceMatrix[prevSelected][unselectedNode] + distanceMatrix[unselectedNode][nextSelected]
+	costBefore := distanceMatrix[prevSelected][solution[selectedIndex]] +
+		distanceMatrix[solution[selectedIndex]][nextSelected] -
+		distanceMatrix[nextSelected][nextSelected]
+
+	costAfter := distanceMatrix[prevSelected][unselectedNode] +
+		distanceMatrix[unselectedNode][nextSelected] -
+		distanceMatrix[nextSelected][nextSelected]
 
 	return costAfter - costBefore
 }
@@ -108,7 +113,12 @@ func applyMove(solution []int, move Move, unselectedNodes *[]int) {
 	case "twoEdgesExchange":
 		reverseSegment(solution, move.i+1, move.j)
 	case "interRouteExchange":
-		solution[move.i], (*unselectedNodes)[move.j] = (*unselectedNodes)[move.j], solution[move.i]
+		// Find the index of `move.j` (unique node) in `unselectedNodes`
+		jIndex := findIndex(*unselectedNodes, move.j)
+		if jIndex != -1 {
+			// Perform the swap using the found index
+			solution[move.i], (*unselectedNodes)[jIndex] = (*unselectedNodes)[jIndex], solution[move.i]
+		}
 	}
 }
 
@@ -120,9 +130,18 @@ func reverseSegment(solution []int, i, j int) {
 	}
 }
 
+func findIndex(slice []int, value int) int {
+	for i, v := range slice {
+		if v == value {
+			return i
+		}
+	}
+	return -1
+}
+
 // GreedyMove evaluates moves until an improvement is found
 func GreedyMove(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, intraMoveType string) ([]int, bool) {
-	moves := generateMoves(solution, visited, unselectedNodes, intraMoveType)
+	moves := generateMoves(solution, unselectedNodes, intraMoveType)
 	improved := false
 
 	for _, move := range moves {
@@ -146,7 +165,7 @@ func GreedyMove(solution []int, visited map[int]bool, unselectedNodes []int, dis
 }
 
 func SteepestMove(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, intraMoveType string) ([]int, bool) {
-	moves := generateMoves(solution, visited, unselectedNodes, intraMoveType)
+	moves := generateMoves(solution, unselectedNodes, intraMoveType)
 	bestDelta := 0
 	improved := false
 	var bestMove Move
