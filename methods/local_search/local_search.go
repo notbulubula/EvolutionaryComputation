@@ -145,9 +145,10 @@ func GreedyMove(solution []int, visited map[int]bool, unselectedNodes []int, dis
 	return solution, improved
 }
 
-func SteepestMove(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, intraMoveType string) []int {
+func SteepestMove(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, intraMoveType string) ([]int, bool) {
 	moves := generateMoves(solution, visited, unselectedNodes, intraMoveType)
 	bestDelta := 0
+	improved := false
 	var bestMove Move
 
 	// Evaluate all moves
@@ -170,7 +171,9 @@ func SteepestMove(solution []int, visited map[int]bool, unselectedNodes []int, d
 
 	if bestDelta < 0 {
 		applyMove(solution, bestMove, &unselectedNodes)
+		improved = true
+		return solution, improved
 	}
 
-	return solution
+	return solution, improved
 }

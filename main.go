@@ -17,20 +17,20 @@ var iterations = 200
 type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
-	"random":                     methods.RandomSolution,
-	"nearest_neighbour_end_only": methods.NearestNeighborEndOnly,
-	"nearest_neighbour_flexible": methods.NearestNeighborFlexible,
-	"greedy_cycle":               methods.GreedyCycle,
-	"greedy2regret":              methods.GreedyTwoRegret,
-	"greedy2regret_weights":      methods.GreedyRegretWeight,
-	"LS_random_greedy_intranode": local_search.RandomGreedyIntraNode,
-	"LS_random_greedy_intraedge": local_search.RandomGreedyIntraEdge,
-	// "random_steepest_intranode": local_search.RandomSteepestIntraNode,
-	// "random_steepest_intraedge": local_search.RandomSteepestIntraEdge,
-	"LS_nearest_neighbour_flexible_greedy_intranode": local_search.NearestNeighbourFlexibleGreedyIntraNode,
-	"LS_nearest_neighbour_flexible_greedy_intraedge": local_search.NearestNeighbourFlexibleGreedyIntraEdge,
-	// "nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
-	// "nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
+	"random":                                           methods.RandomSolution,
+	"nearest_neighbour_end_only":                       methods.NearestNeighborEndOnly,
+	"nearest_neighbour_flexible":                       methods.NearestNeighborFlexible,
+	"greedy_cycle":                                     methods.GreedyCycle,
+	"greedy2regret":                                    methods.GreedyTwoRegret,
+	"greedy2regret_weights":                            methods.GreedyRegretWeight,
+	"LS_random_greedy_intranode":                       local_search.RandomGreedyIntraNode,
+	"LS_random_greedy_intraedge":                       local_search.RandomGreedyIntraEdge,
+	"LS_random_steepest_intranode":                     local_search.RandomSteepestIntraNode,
+	"LS_random_steepest_intraedge":                     local_search.RandomSteepestIntraEdge,
+	"LS_nearest_neighbour_flexible_greedy_intranode":   local_search.NearestNeighbourFlexibleGreedyIntraNode,
+	"LS_nearest_neighbour_flexible_greedy_intraedge":   local_search.NearestNeighbourFlexibleGreedyIntraEdge,
+	"LS_nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
+	"LS_nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
 }
 
 type Results struct {
