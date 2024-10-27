@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 var iterations = 200
@@ -39,6 +40,7 @@ type Results struct {
 	WorstSolution  []int   `json:"worst_solution"`
 	WorstFitness   int     `json:"worst_fitness"`
 	AverageFitness float32 `json:"average_fitness"`
+	ExecutionTime  float64 `json:"execution_time"` // in seconds
 }
 
 func main() {
@@ -86,6 +88,8 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
 
+	startTime := time.Now() // Start the timer
+
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
 
@@ -103,11 +107,14 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		totalFitness += fitness
 	}
 
+	elapsedTime := time.Since(startTime).Seconds() // Calculate the elapsed time in seconds
+
 	averageFitness := float32(totalFitness) / float32(iterations)
 
 	fmt.Printf("Best solution (node indices): %v\nBest fitness: %v\n", bestSolution, bestFitness)
 	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
 	fmt.Printf("Average fitness: %f\n", averageFitness)
+	fmt.Printf("Execution time: %f seconds\n", elapsedTime)
 
 	return Results{
 		BestSolution:   bestSolution,
@@ -115,6 +122,7 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		WorstSolution:  worstSolution,
 		WorstFitness:   worstFitness,
 		AverageFitness: averageFitness,
+		ExecutionTime:  elapsedTime,
 	}
 }
 
@@ -132,7 +140,7 @@ func detectPython() string {
 
 func parseArgs() (string, string) {
 	if len(os.Args) < 3 {
-		log.Fatalf("Usage: go run main.go  <data_file.csv> <method>| optional <num_iterations>\n")
+		log.Fatalf("Usage: go run main.go <data_file.csv> <method>| optional <num_iterations>\n")
 	}
 
 	file := os.Args[1]
