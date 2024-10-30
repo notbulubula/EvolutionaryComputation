@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"evolutionary_computation/methods"
+	"evolutionary_computation/methods/local_search"
 	"evolutionary_computation/utils"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 var iterations = 200
@@ -16,12 +18,20 @@ var iterations = 200
 type MethodFunc func([][]int, int) []int
 
 var methodsMap = map[string]MethodFunc{
-	"random":                    methods.RandomSolution,
-	"nearest_neighbor_end_only": methods.NearestNeighborEndOnly,
-	"nearest_neighbor_flexible": methods.NearestNeighborFlexible,
-	"greedy_cycle":              methods.GreedyCycle,
-	"greedy2regret":             methods.GreedyTwoRegret,
-	"greedy2regret_weights": 	 methods.GreedyRegretWeight,
+	"random":                                           methods.RandomSolution,
+	"nearest_neighbour_end_only":                       methods.NearestNeighborEndOnly,
+	"nearest_neighbour_flexible":                       methods.NearestNeighborFlexible,
+	"greedy_cycle":                                     methods.GreedyCycle,
+	"greedy2regret":                                    methods.GreedyTwoRegret,
+	"greedy2regret_weights":                            methods.GreedyRegretWeight,
+	"LS_random_greedy_intranode":                       local_search.RandomGreedyIntraNode,
+	"LS_random_greedy_intraedge":                       local_search.RandomGreedyIntraEdge,
+	"LS_random_steepest_intranode":                     local_search.RandomSteepestIntraNode,
+	"LS_random_steepest_intraedge":                     local_search.RandomSteepestIntraEdge,
+	"LS_nearest_neighbour_flexible_greedy_intranode":   local_search.NearestNeighbourFlexibleGreedyIntraNode,
+	"LS_nearest_neighbour_flexible_greedy_intraedge":   local_search.NearestNeighbourFlexibleGreedyIntraEdge,
+	"LS_nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
+	"LS_nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
 }
 
 type Results struct {
@@ -30,6 +40,7 @@ type Results struct {
 	WorstSolution  []int   `json:"worst_solution"`
 	WorstFitness   int     `json:"worst_fitness"`
 	AverageFitness float32 `json:"average_fitness"`
+	ExecutionTime  float64 `json:"execution_time"` // in seconds
 }
 
 func main() {
@@ -77,6 +88,8 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
 
+	startTime := time.Now() // Start the timer
+
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
 
@@ -94,11 +107,14 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		totalFitness += fitness
 	}
 
+	elapsedTime := time.Since(startTime).Seconds() // Calculate the elapsed time in seconds
+
 	averageFitness := float32(totalFitness) / float32(iterations)
 
 	fmt.Printf("Best solution (node indices): %v\nBest fitness: %v\n", bestSolution, bestFitness)
 	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
 	fmt.Printf("Average fitness: %f\n", averageFitness)
+	fmt.Printf("Execution time: %f seconds\n", elapsedTime)
 
 	return Results{
 		BestSolution:   bestSolution,
@@ -106,6 +122,7 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		WorstSolution:  worstSolution,
 		WorstFitness:   worstFitness,
 		AverageFitness: averageFitness,
+		ExecutionTime:  elapsedTime,
 	}
 }
 
@@ -123,7 +140,7 @@ func detectPython() string {
 
 func parseArgs() (string, string) {
 	if len(os.Args) < 3 {
-		log.Fatalf("Usage: go run main.go  <data_file.csv> <method>| optional <num_iterations>\n")
+		log.Fatalf("Usage: go run main.go <data_file.csv> <method>| optional <num_iterations>\n")
 	}
 
 	file := os.Args[1]
