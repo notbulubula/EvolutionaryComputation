@@ -33,7 +33,7 @@ func GreedyTwoRegret(distanceMatrix [][]int, startNode int) []int {
 func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 	_, numToSelect, solution, visited := utils.GetInitialState(distanceMatrix, startNode)
 	var weightRegret float32 = -4 // < -3 good for TSP_A
-	var weightChange float32 = 1 // >1 good for TSP_B, 
+	var weightChange float32 = 1  // >1 good for TSP_B,
 
 	for len(solution) < numToSelect {
 		best1, best2 := twoBestCandidates(visited, solution, distanceMatrix)
@@ -43,11 +43,11 @@ func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 		bestCost2, secondBest2, insertPos2 := getBestInsertionCost(best2, solution, distanceMatrix)
 		regret2 := bestCost2 - secondBest2
 
-		totalCost1 := weightRegret * float32(regret1) + weightChange * float32(bestCost1) 
-		totalCost2 := weightRegret * float32(regret2) + weightChange * float32(bestCost2)
+		totalCost1 := weightRegret*float32(regret1) + weightChange*float32(bestCost1)
+		totalCost2 := weightRegret*float32(regret2) + weightChange*float32(bestCost2)
 
 		if totalCost1 <= totalCost2 {
-			solution =  utils.InsertAt(solution, insertPos1, best1)
+			solution = utils.InsertAt(solution, insertPos1, best1)
 			visited[best1] = true
 		} else {
 			solution = utils.InsertAt(solution, insertPos2, best2)
@@ -62,7 +62,7 @@ func GreedyRegretWeight(distanceMatrix [][]int, startNode int) []int {
 func calculateWeight(regret int, newFitness int, currentFitness int) int {
 	regretWeight := 1
 	changeWeight := -1 //We normally minimize the change, but want to maximize the equation
-	return regretWeight * regret + changeWeight * (newFitness - currentFitness)
+	return regretWeight*regret + changeWeight*(newFitness-currentFitness)
 }
 
 func twoBestCandidates(visited map[int]bool, solution []int, distanceMatrix [][]int) (int, int) {
@@ -123,4 +123,3 @@ func getBestInsertionCost(node int, solution []int, distanceMatrix [][]int) (int
 
 	return bestCost, secondBestCost, bestPos
 }
-

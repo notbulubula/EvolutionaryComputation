@@ -13,10 +13,14 @@ def process_results_json(json_path, tex_path):
         best_fitness = data.get("best_fitness", "N/A")
         worst_fitness = data.get("worst_fitness", "N/A")
         average_fitness = data.get("average_fitness", "N/A")
-        execution_time = data.get("execution_time", "N/A")  # New line to get execution time
+        execution_time = data.get("execution_time", "N/A")
         best_solution = data.get("best_solution", [])
         worst_solution = data.get("worst_solution", [])
         method = data.get("method", "unknown").replace('_', ' ').title()
+
+        min_exec_time = round(min(execution_time), 3)
+        max_exec_time = round(max(execution_time), 3)
+        avg_exec_time = round(sum(execution_time) / len(execution_time), 3) 
 
         latex_content = f"""
 \\subsubsection{{Results for {method}}}
@@ -33,7 +37,7 @@ def process_results_json(json_path, tex_path):
 \\end{{lstlisting}}
 
 \\textbf{{Average Fitness: {average_fitness}}} \\\\
-\\textbf{{Execution Time: {execution_time} seconds}}
+\\textbf{{Execution Time: {min_exec_time}-{max_exec_time}({avg_exec_time}) seconds}}
 """
 
         with open(tex_path, 'w') as tex_file:

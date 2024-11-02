@@ -32,6 +32,7 @@ var methodsMap = map[string]MethodFunc{
 	"LS_nearest_neighbour_flexible_greedy_intraedge":   local_search.NearestNeighbourFlexibleGreedyIntraEdge,
 	"LS_nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
 	"LS_nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
+	"LS_candidates":                                    local_search.LS_Candidates,
 }
 
 type Results struct {
@@ -40,7 +41,7 @@ type Results struct {
 	WorstSolution  []int   `json:"worst_solution"`
 	WorstFitness   int     `json:"worst_fitness"`
 	AverageFitness float32 `json:"average_fitness"`
-	ExecutionTime  float64 `json:"execution_time"` // in seconds
+	ExecutionTime  []float64 `json:"execution_time"` // in seconds
 }
 
 func main() {
@@ -71,9 +72,7 @@ func main() {
 			log.Fatalf("Error writing to temp file: %v", err)
 		}
 
-		pythonCmd := detectPython()
-
-		cmd := exec.Command(pythonCmd, "scripts/log_results.py", inputFile, tempFile.Name(), methodName)
+		cmd := exec.Command("python", "scripts/log_results.py", inputFile, tempFile.Name(), methodName)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
@@ -87,13 +86,16 @@ func main() {
 func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestFitness, worstFitness, totalFitness int
 	var bestSolution, worstSolution []int
+	var times []float64
 
-	startTime := time.Now() // Start the timer
 
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
 
+		timeIt := time.Now()
 		solution := method(costMatrix, startNode)
+		elapsed := time.Since(timeIt).Seconds()
+		times = append(times, elapsed)
 		fitness := utils.Fitness(solution, costMatrix)
 
 		if i == 0 || fitness < bestFitness {
@@ -107,35 +109,21 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		totalFitness += fitness
 	}
 
-	elapsedTime := time.Since(startTime).Seconds() // Calculate the elapsed time in seconds
 
 	averageFitness := float32(totalFitness) / float32(iterations)
 
 	fmt.Printf("Best solution (node indices): %v\nBest fitness: %v\n", bestSolution, bestFitness)
 	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
 	fmt.Printf("Average fitness: %f\n", averageFitness)
-	fmt.Printf("Execution time: %f seconds\n", elapsedTime)
-
+	
 	return Results{
 		BestSolution:   bestSolution,
 		BestFitness:    bestFitness,
 		WorstSolution:  worstSolution,
 		WorstFitness:   worstFitness,
 		AverageFitness: averageFitness,
-		ExecutionTime:  elapsedTime,
+		ExecutionTime:  times,
 	}
-}
-
-func detectPython() string {
-	pythonCmd := "python3"
-	if _, err := exec.LookPath("python3"); err != nil {
-		if _, err := exec.LookPath("python"); err == nil {
-			pythonCmd = "python"
-		} else {
-			log.Fatal("Error: Neither python3 nor python is installed or available in PATH.")
-		}
-	}
-	return pythonCmd
 }
 
 func parseArgs() (string, string) {
