@@ -90,44 +90,6 @@ func deltaTwoEdgesExchange(solution []int, i int, j int, distanceMatrix [][]int)
 	return costAfter - costBefore
 }
 
-// i, j are indexes in solution NOT IN MATRIX
-// calculates delta fitness that adds a i->j edge
-// e.g. transforms 12345 -> 12354
-func deltaTwoEdgesExchangeCandidate(solution []int, i int, j int, dM [][]int) int {
-	n := len(solution)
-
-	I := solution[i]
-	J := solution[j]
-
-	nextI := solution[(i+1)%n]
-	prevJ := solution[(j-1+n)%n]
-	nextJ := solution[(j+1)%n]
-
-	return dM[I][J] + dM[J][nextI] + dM[prevJ][nextJ] - dM[I][nextI] - dM[prevJ][J] - dM[J][nextJ]
-
-}
-
-// Moves j to i+1 position
-func moveAfter(slice []int, i int, j int) []int {
-	if i == j || i < 0 || i >= len(slice) || j < 0 || j >= len(slice) {
-		return slice
-	}
-
-	// Remove the element at index `j` and save it
-	elem := slice[j]
-	if j > i {
-		// If j is after i, remove it before inserting at i+1
-		slice = append(slice[:j], slice[j+1:]...)
-		slice = append(slice[:i+1], append([]int{elem}, slice[i+1:]...)...)
-	} else {
-		// If j is before i, insert at i+1 first, then remove old j
-		slice = append(slice[:i+1], append([]int{elem}, slice[i+1:]...)...)
-		slice = append(slice[:j], slice[j+1:]...)
-	}
-
-	return slice
-}
-
 // Return delta
 func deltaInterCandidate(solution []int, i int, j int, dM [][]int) int {
 	n := len(solution)
@@ -292,7 +254,7 @@ func SteepestCandidate(solution []int,
 			// inter move here
 			tempMove.moveType = "interRouteExchange"
 			delta = deltaInterCandidate(solution, tempMove.i, tempMove.j, distanceMatrix)
-		} else if tempMove.solutionI == -1{
+		} else if tempMove.solutionI == -1 {
 			tempMove.moveType = "interRouteExchange"
 
 			tempMove.i, tempMove.j = tempMove.j, tempMove.i
@@ -330,4 +292,71 @@ func SteepestCandidate(solution []int,
 	}
 
 	return solution, improved
+}
+
+func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, moves []MoveDelta) ([]int, bool) {
+	bestDelta := 0
+	improved := false
+	var bestMove MoveDelta
+
+	for _, move := range moves {
+		delta := move.delta
+
+		// TODO removing unwanted moves
+
+		if delta < bestDelta {
+			bestDelta = delta
+			bestMove = move
+		}
+	}
+
+	if bestDelta < 0 {
+		applyMove(solution, Move{moveType: bestMove.moveType, i: bestMove.i, j: bestMove.j}, &unselectedNodes)
+		improved = true
+		fmt.Println("Best move: ", bestMove)
+
+		// Update the moves list
+		// moves = addNewMovesDelta(bestMove, moves, distanceMatrix, solution, unselectedNodes)
+
+		return solution, improved
+	}
+
+	return solution, improved
+}
+
+func addNewMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, unselectedNodes []int) []MoveDelta {
+	// Copy the current moves list to newMoves
+	newMoves := make([]MoveDelta, len(moves))
+	copy(newMoves, moves)
+
+	n := len(solution)
+
+	// If best move is twoEdgesExchange
+	if bestMove.moveType == "twoEdgesExchange" {
+		// Add new moves for the two nodes involved in the best move
+		//TODO
+	}
+
+	// If best move is interRouteExchange
+	if bestMove.moveType == "interRouteExchange" {
+		// List of changed nodes
+		prevSelectedIdx := (bestMove.i - 1 + n) % n
+		nextSelectedIdx := (bestMove.i + 1) % n
+		changedNodes := []int{prevSelectedIdx, bestMove.i, nextSelectedIdx}
+
+		// Intra-route: two-edges exchange
+		//TODO
+
+		// Inter-route: exchange between selected and unselected nodes
+		for _, node := range changedNodes {
+			for _, unselected := range unselectedNodes {
+				delta := deltaInterRouteExchange(changedNodes, node, unselected, distanceMatrix)
+				if delta < 0 {
+					newMoves = append(newMoves, MoveDelta{"interRouteExchange", node, unselected, delta})
+				}
+			}
+		}
+	}
+
+	return newMoves
 }
