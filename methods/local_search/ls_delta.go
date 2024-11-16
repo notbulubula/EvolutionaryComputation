@@ -2,6 +2,7 @@ package local_search
 
 import (
 	"evolutionary_computation/methods"
+	"math"
 	"sort"
 )
 
@@ -23,10 +24,9 @@ func LS_Delta(distanceMatrix [][]int, startNode int) []int {
 		}
 	}
 
-	moves := getMovesDelta(distanceMatrix, solution, unselected)
+	moves := getMovesDelta(distanceMatrix, solution)
 
 	improved := true
-
 	for improved {
 		solution, improved = SteepestDelta(solution, visted, unselected, distanceMatrix, moves)
 		continue
@@ -35,32 +35,46 @@ func LS_Delta(distanceMatrix [][]int, startNode int) []int {
 }
 
 type MoveDelta struct {
-	moveType string
-	i, j     int // indices of nodes involved
-	delta    int // change in cost
+	i, j  int // indices of nodes involved
+	delta int // change in cost
 }
 
-func getMovesDelta(distanceMatrix [][]int, solution []int, unselectedNodes []int) []MoveDelta {
+func getMovesDelta(distanceMatrix [][]int, solution []int) []MoveDelta {
 	var moves []MoveDelta
 	n := len(solution)
 
-	// Intra-route: two-edges exchange
+	// Generate all combinations of moves and add None as delta
 	for i := 0; i < n; i++ {
-		for j := i + 2; j < n; j++ {
-			delta := deltaTwoEdgesExchange(solution, i, j, distanceMatrix)
-			if delta < 0 {
-				moves = append(moves, MoveDelta{"twoEdgesExchange", i, j, delta})
+		for j := 0; j < n; j++ {
+			if i == j {
+				continue
 			}
+			moves = append(moves, MoveDelta{i, j, 0})
 		}
 	}
 
-	// Inter-route: exchange between selected and unselected nodes
-	for i := 0; i < n; i++ {
-		for _, unselected := range unselectedNodes {
-			delta := deltaInterRouteExchange(solution, i, unselected, distanceMatrix)
+	for move := range moves {
+		move_i_index := findIndex(solution, moves[move].i)
+		move_j_index := findIndex(solution, moves[move].j)
+
+		//if i and j are in solution and not neighbours
+		// calculate TwoEdgesExchange delata
+		if move_i_index != -1 && move_j_index != -1 && math.Abs(float64(move_i_index-move_j_index)) != 1 {
+			delta := deltaTwoEdgesExchange(solution, move_i_index, move_j_index, distanceMatrix)
 			if delta < 0 {
-				moves = append(moves, MoveDelta{"interRouteExchange", i, unselected, delta})
+				moves[move].delta = delta
 			}
+
+		}
+
+		//if i is in solution and j is not
+		// calculate InterRouteExchange delta
+		if move_i_index != -1 && move_j_index == -1 {
+			delta := deltaInterRouteExchange(solution, move_i_index, moves[move].j, distanceMatrix)
+			if delta < 0 {
+				moves[move].delta = delta
+			}
+
 		}
 	}
 

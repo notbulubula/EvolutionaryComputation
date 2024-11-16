@@ -2,7 +2,9 @@ package local_search
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
+	"sort"
 )
 
 type Move struct {
@@ -298,25 +300,57 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 	bestDelta := 0
 	improved := false
 	var bestMove MoveDelta
+	var move_i_index int
+	var move_j_index int
+	var moveType string
 
-	for _, move := range moves {
+	for i, move := range moves {
 		delta := move.delta
-
-		// TODO removing unwanted moves
+		move_i_index = findIndex(solution, move.i)
+		move_j_index = findIndex(solution, move.j)
+		// removing unwanted moves (set delta to 0 in the moves list)
+		// if i not in solution
+		if move_i_index == -1 {
+			moves[i].delta = 0
+			continue
+		}
+		// if i and j are neighbours
+		if move_i_index != -1 && move_j_index != -1 && math.Abs(float64(move_i_index-move_j_index)) == 1 {
+			moves[i].delta = 0
+			continue
+		}
 
 		if delta < bestDelta {
 			bestDelta = delta
 			bestMove = move
+
+			// remove move from moves and break (set delta to 0 in the moves list)
+			moves[i].delta = 0
+			break
 		}
 	}
 
+	if move_i_index != -1 && move_j_index != -1 {
+		moveType = "twoEdgesExchange"
+	} else {
+		moveType = "interRouteExchange"
+	}
+
 	if bestDelta < 0 {
-		applyMove(solution, Move{moveType: bestMove.moveType, i: bestMove.i, j: bestMove.j}, &unselectedNodes)
+		if moveType == "twoEdgesExchange" {
+			// fmt.Println("Best move: ", moveType, bestMove, move_i_index, move_j_index)
+			max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+			min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+			applyMove(solution, Move{moveType: moveType, i: min, j: max}, &unselectedNodes)
+		} else {
+			// fmt.Println("Best move: ", moveType, bestMove)
+			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: bestMove.j}, &unselectedNodes)
+		}
+		// applyMove(solution, Move{moveType: moveType, i: bestMove.i, j: bestMove.j}, &unselectedNodes)
 		improved = true
-		fmt.Println("Best move: ", bestMove)
 
 		// Update the moves list
-		// moves = addNewMovesDelta(bestMove, moves, distanceMatrix, solution, unselectedNodes)
+		updateMovesDelta(bestMove, moveType, moves, distanceMatrix, solution, move_i_index, move_j_index)
 
 		return solution, improved
 	}
@@ -324,39 +358,59 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 	return solution, improved
 }
 
-func addNewMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, unselectedNodes []int) []MoveDelta {
-	// Copy the current moves list to newMoves
-	newMoves := make([]MoveDelta, len(moves))
-	copy(newMoves, moves)
-
-	n := len(solution)
-
-	// If best move is twoEdgesExchange
-	if bestMove.moveType == "twoEdgesExchange" {
-		// Add new moves for the two nodes involved in the best move
-		//TODO
+func updateMovesDelta(bestMove MoveDelta, moveType string, moves []MoveDelta, distanceMatrix [][]int, solution []int, move_i_index int, move_j_index int) {
+	var NodestoCheck []int
+	if moveType == "twoEdgesExchange" {
+		max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+		min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+		for i := min; i < max+1; i++ {
+			NodestoCheck = append(NodestoCheck, solution[i])
+		}
+	} else {
+		j_index := findIndex(solution, bestMove.j)
+		nextJ := solution[(j_index+1)%len(solution)]
+		prevJ := solution[(j_index-1+len(solution))%len(solution)]
+		NodestoCheck = []int{prevJ, bestMove.j, nextJ}
 	}
 
-	// If best move is interRouteExchange
-	if bestMove.moveType == "interRouteExchange" {
-		// List of changed nodes
-		prevSelectedIdx := (bestMove.i - 1 + n) % n
-		nextSelectedIdx := (bestMove.i + 1) % n
-		changedNodes := []int{prevSelectedIdx, bestMove.i, nextSelectedIdx}
+	// Checking for Inter moves
+	// fmt.Println("Solution: ", solution)
+	// fmt.Println("nodes2check", NodestoCheck)
 
-		// Intra-route: two-edges exchange
-		//TODO
-
-		// Inter-route: exchange between selected and unselected nodes
-		for _, node := range changedNodes {
-			for _, unselected := range unselectedNodes {
-				delta := deltaInterRouteExchange(changedNodes, node, unselected, distanceMatrix)
+	for M, move := range moves {
+		if contains(NodestoCheck, move.i) && !contains(solution, move.j) {
+			i_index := findIndex(solution, move.i)
+			delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
+			if delta < 0 {
+				moves[M].delta = delta
+			}
+		}
+		if (contains(NodestoCheck, move.i) && contains(solution, move.j)) ||
+			(contains(NodestoCheck, move.j) && contains(solution, move.i)) {
+			//check if i and j are not neighbours
+			i_index := findIndex(solution, move.i)
+			j_index := findIndex(solution, move.j)
+			if math.Abs(float64(i_index-j_index)) != 1 {
+				delta := deltaTwoEdgesExchange(solution, i_index, j_index, distanceMatrix)
 				if delta < 0 {
-					newMoves = append(newMoves, MoveDelta{"interRouteExchange", node, unselected, delta})
+					moves[M].delta = delta
 				}
 			}
 		}
+
 	}
 
-	return newMoves
+	// Sort moves by delta in ascending order
+	sort.Slice(moves, func(a, b int) bool {
+		return moves[a].delta < moves[b].delta
+	})
+}
+
+func contains(slice []int, value int) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
