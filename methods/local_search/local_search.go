@@ -404,6 +404,8 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 			}
 		}
 
+		moves[M].delta = 0
+
 	}
 
 	// Sort moves by delta in ascending order
