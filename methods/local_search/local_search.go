@@ -303,6 +303,7 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 	var move_i_index int
 	var move_j_index int
 	var moveType string
+	var unselected_node int
 
 	for i, move := range moves {
 		delta := move.delta
@@ -340,12 +341,21 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 			applyMove(solution, Move{moveType: moveType, i: min, j: max}, &unselectedNodes)
 		} else {
 			// fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
+			unselected_before := append([]int{}, unselectedNodes...)
 			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: bestMove.j}, &unselectedNodes)
+
+			// find the difference
+			for _, node := range unselected_before {
+				// fmt.Println("Unselected node: ", node)
+				if !contains(unselectedNodes, node) {
+					unselected_node = node
+				}
+			}
 		}
 		improved = true
 
 		// Update the moves list
-		updateMovesDelta(bestMove, moves, distanceMatrix, solution, move_i_index, move_j_index)
+		updateMovesDelta(bestMove, moves, distanceMatrix, solution, move_i_index, move_j_index, unselected_node)
 
 		return solution, improved
 	}
@@ -353,7 +363,7 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 	return solution, improved
 }
 
-func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, move_i_index int, move_j_index int) {
+func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, move_i_index int, move_j_index int, unselected_node int) {
 	var NodestoCheck []int
 	if bestMove.moveType == "twoEdgesExchange" {
 		min := (move_i_index - 1 + len(solution)) % len(solution)
@@ -371,7 +381,7 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 	}
 
 	// Now the code works but whole purpouse is defeated
-	NodestoCheck = solution
+	// NodestoCheck = solution
 
 	for M, move := range moves {
 		if move.moveType == "twoEdgesExchange" &&
@@ -395,15 +405,24 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 				moves[M].delta = 0
 			}
 		}
-		if move.moveType == "interRouteExchange" &&
-			contains(NodestoCheck, move.i) && !contains(solution, move.j) {
-
-			i_index := findIndex(solution, move.i)
-			delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
-			if delta < 0 {
-				moves[M].delta = delta
-			} else {
-				moves[M].delta = 0
+		if move.moveType == "interRouteExchange" {
+			if contains(NodestoCheck, move.i) && !contains(solution, move.j) {
+				i_index := findIndex(solution, move.i)
+				delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
+				if delta < 0 {
+					moves[M].delta = delta
+				} else {
+					moves[M].delta = 0
+				}
+			}
+			if contains(solution, move.i) && unselected_node == move.j {
+				i_index := findIndex(solution, move.i)
+				delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
+				if delta < 0 {
+					moves[M].delta = delta
+				} else {
+					moves[M].delta = 0
+				}
 			}
 		}
 	}
