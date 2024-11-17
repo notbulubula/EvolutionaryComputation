@@ -42,14 +42,14 @@ type MoveDelta struct {
 
 func getMovesDelta(distanceMatrix [][]int, solution []int) []MoveDelta {
 	var moves []MoveDelta
-	n := len(solution)
+	n := len(distanceMatrix)
 
 	// Generate all combinations of moves and add None as delta
 	for i := 0; i < n; i++ {
 		for j := 0; j < n; j++ {
 			if i != j {
 				moves = append(moves, MoveDelta{"interRouteExchange", i, j, 0})
-				if i < j && math.Abs(float64(i-j)) != 1 {
+				if i < j {
 					moves = append(moves, MoveDelta{"twoEdgesExchange", i, j, 0})
 				}
 			}
@@ -65,9 +65,10 @@ func getMovesDelta(distanceMatrix [][]int, solution []int) []MoveDelta {
 		if move.moveType == "twoEdgesExchange" &&
 			move_i_index != -1 &&
 			move_j_index != -1 &&
-			math.Abs(float64(move_i_index-move_j_index)) != 1 &&
-			move_i_index < move_j_index {
-			delta := deltaTwoEdgesExchange(solution, move_i_index, move_j_index, distanceMatrix)
+			math.Abs(float64(move_i_index-move_j_index)) != 1 {
+			min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+			max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+			delta := deltaTwoEdgesExchange(solution, min, max, distanceMatrix)
 			if delta < 0 {
 				moves[M].delta = delta
 			}

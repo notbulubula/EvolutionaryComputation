@@ -311,7 +311,7 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 
 		// removing unwanted moves (set delta to 0 in the moves list)
 		if move.moveType == "twoEdgesExchange" &&
-			((move_i_index == -1 || move_j_index == -1) || math.Abs(float64(move_i_index-move_j_index)) == 1 || move_i_index > move_j_index) {
+			((move_i_index == -1 || move_j_index == -1) || math.Abs(float64(move_i_index-move_j_index)) == 1) {
 			moves[i].delta = 0
 			continue
 		}
@@ -334,10 +334,12 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 
 	if bestDelta < 0 {
 		if moveType == "twoEdgesExchange" {
-			fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
-			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: move_j_index}, &unselectedNodes)
+			// fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
+			min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+			max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+			applyMove(solution, Move{moveType: moveType, i: min, j: max}, &unselectedNodes)
 		} else {
-			fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
+			// fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
 			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: bestMove.j}, &unselectedNodes)
 		}
 		improved = true
@@ -368,28 +370,27 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 		NodestoCheck = []int{prevJ, bestMove.j, nextJ}
 	}
 
-	// Checking for Inter moves
-	// fmt.Println("Solution: ", solution)
-	// fmt.Println("nodes2check", NodestoCheck)
-
 	for M, move := range moves {
 		if move.moveType == "twoEdgesExchange" &&
 			(contains(NodestoCheck, move.i) && contains(solution, move.j)) ||
-			(contains(NodestoCheck, move.j) && contains(solution, move.i)) &&
-				findIndex(solution, move.i) < findIndex(solution, move.j) {
+			(contains(NodestoCheck, move.j) && contains(solution, move.i)) {
 			//check if i and j are not neighbours
 			i_index := findIndex(solution, move.i)
 			j_index := findIndex(solution, move.j)
 
+			min := int(math.Min(float64(i_index), float64(j_index)))
+			max := int(math.Max(float64(i_index), float64(j_index)))
+
 			if math.Abs(float64(i_index-j_index)) != 1 {
-				delta := deltaTwoEdgesExchange(solution, i_index, j_index, distanceMatrix)
+				delta := deltaTwoEdgesExchange(solution, min, max, distanceMatrix)
 				if delta < 0 {
 					moves[M].delta = delta
 				} else {
 					moves[M].delta = 0
 				}
+			} else {
+				moves[M].delta = 0
 			}
-
 		}
 		if move.moveType == "interRouteExchange" &&
 			contains(NodestoCheck, move.i) && !contains(solution, move.j) {
