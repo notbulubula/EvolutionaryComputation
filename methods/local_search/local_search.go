@@ -344,9 +344,8 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 			unselected_before := append([]int{}, unselectedNodes...)
 			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: bestMove.j}, &unselectedNodes)
 
-			// find the difference
+			// find the unselected node
 			for _, node := range unselected_before {
-				// fmt.Println("Unselected node: ", node)
 				if !contains(unselectedNodes, node) {
 					unselected_node = node
 				}
@@ -366,10 +365,10 @@ func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, 
 func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, move_i_index int, move_j_index int, unselected_node int) {
 	var NodestoCheck []int
 	if bestMove.moveType == "twoEdgesExchange" {
-		min := (move_i_index - 1 + len(solution)) % len(solution)
-		max := (move_j_index + 2) % len(solution)
-		min = int(math.Min(float64(max), float64(min)))
-		max = int(math.Max(float64(max), float64(min)))
+		min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+		max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+		min = int(math.Max(float64(min-1), 0))
+		max = int(math.Min(float64(max+2), float64(len(solution))))
 		for i := min; i < max; i++ {
 			NodestoCheck = append(NodestoCheck, solution[i])
 		}
@@ -379,9 +378,6 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 		prevJ := solution[(j_index-1+len(solution))%len(solution)]
 		NodestoCheck = []int{prevJ, bestMove.j, nextJ}
 	}
-
-	// Now the code works but whole purpouse is defeated
-	// NodestoCheck = solution
 
 	for M, move := range moves {
 		if move.moveType == "twoEdgesExchange" &&
