@@ -370,6 +370,9 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 		NodestoCheck = []int{prevJ, bestMove.j, nextJ}
 	}
 
+	// Now the code works but whole purpouse is defeated
+	NodestoCheck = solution
+
 	for M, move := range moves {
 		if move.moveType == "twoEdgesExchange" &&
 			(contains(NodestoCheck, move.i) && contains(solution, move.j)) ||
@@ -403,9 +406,6 @@ func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]
 				moves[M].delta = 0
 			}
 		}
-
-		moves[M].delta = 0
-
 	}
 
 	// Sort moves by delta in ascending order
