@@ -35,8 +35,9 @@ func LS_Delta(distanceMatrix [][]int, startNode int) []int {
 }
 
 type MoveDelta struct {
-	i, j  int // indices of nodes involved
-	delta int // change in cost
+	moveType string
+	i, j     int // indices of nodes involved
+	delta    int // change in cost
 }
 
 func getMovesDelta(distanceMatrix [][]int, solution []int) []MoveDelta {
@@ -46,33 +47,41 @@ func getMovesDelta(distanceMatrix [][]int, solution []int) []MoveDelta {
 	// Generate all combinations of moves and add None as delta
 	for i := 0; i < n; i++ {
 		for j := 0; j < n; j++ {
-			if i == j {
-				continue
+			if i != j {
+				moves = append(moves, MoveDelta{"interRouteExchange", i, j, 0})
+				if i < j && math.Abs(float64(i-j)) != 1 {
+					moves = append(moves, MoveDelta{"twoEdgesExchange", i, j, 0})
+				}
 			}
-			moves = append(moves, MoveDelta{i, j, 0})
 		}
 	}
 
-	for move := range moves {
-		move_i_index := findIndex(solution, moves[move].i)
-		move_j_index := findIndex(solution, moves[move].j)
+	for M, move := range moves {
+		move_i_index := findIndex(solution, moves[M].i)
+		move_j_index := findIndex(solution, moves[M].j)
 
 		//if i and j are in solution and not neighbours
 		// calculate TwoEdgesExchange delata
-		if move_i_index != -1 && move_j_index != -1 && math.Abs(float64(move_i_index-move_j_index)) != 1 {
+		if move.moveType == "twoEdgesExchange" &&
+			move_i_index != -1 &&
+			move_j_index != -1 &&
+			math.Abs(float64(move_i_index-move_j_index)) != 1 &&
+			move_i_index < move_j_index {
 			delta := deltaTwoEdgesExchange(solution, move_i_index, move_j_index, distanceMatrix)
 			if delta < 0 {
-				moves[move].delta = delta
+				moves[M].delta = delta
 			}
 
 		}
 
 		//if i is in solution and j is not
 		// calculate InterRouteExchange delta
-		if move_i_index != -1 && move_j_index == -1 {
-			delta := deltaInterRouteExchange(solution, move_i_index, moves[move].j, distanceMatrix)
+		if move.moveType == "interRouteExchange" &&
+			move_i_index != -1 &&
+			move_j_index == -1 {
+			delta := deltaInterRouteExchange(solution, move_i_index, moves[M].j, distanceMatrix)
 			if delta < 0 {
-				moves[move].delta = delta
+				moves[M].delta = delta
 			}
 
 		}
