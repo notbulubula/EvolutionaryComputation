@@ -31,7 +31,7 @@ func RandomSteepestIntraEdge(distanceMatrix [][]int, startNode int) []int {
 }
 
 
-func RandomSteepestIntraEdgeFromSolution(initialSolution []int, distanceMatrix [][]int, startNode int) []int {
+func SteepestIntraEdgeFromSolution(initialSolution []int, distanceMatrix [][]int, startNode int) []int {
 	visted := make(map[int]bool)
 	// Make visited map
 	for _, id := range initialSolution {
