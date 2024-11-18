@@ -33,14 +33,15 @@ var methodsMap = map[string]MethodFunc{
 	"LS_nearest_neighbour_flexible_steepest_intranode": local_search.NearestNeighbourFlexibleSteepestIntraNode,
 	"LS_nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
 	"LS_candidates":                                    local_search.LS_Candidates,
+	"LS_delta":                                         local_search.LS_Delta,
 }
 
 type Results struct {
-	BestSolution   []int   `json:"best_solution"`
-	BestFitness    int     `json:"best_fitness"`
-	WorstSolution  []int   `json:"worst_solution"`
-	WorstFitness   int     `json:"worst_fitness"`
-	AverageFitness float32 `json:"average_fitness"`
+	BestSolution   []int     `json:"best_solution"`
+	BestFitness    int       `json:"best_fitness"`
+	WorstSolution  []int     `json:"worst_solution"`
+	WorstFitness   int       `json:"worst_fitness"`
+	AverageFitness float32   `json:"average_fitness"`
 	ExecutionTime  []float64 `json:"execution_time"` // in seconds
 }
 
@@ -88,7 +89,6 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 	var bestSolution, worstSolution []int
 	var times []float64
 
-
 	for i := 0; i < iterations; i++ {
 		startNode := i % len(costMatrix)
 
@@ -109,13 +109,12 @@ func runMethod(method MethodFunc, costMatrix [][]int) Results {
 		totalFitness += fitness
 	}
 
-
 	averageFitness := float32(totalFitness) / float32(iterations)
 
 	fmt.Printf("Best solution (node indices): %v\nBest fitness: %v\n", bestSolution, bestFitness)
 	fmt.Printf("Worst solution (node indices): %v\nWorst fitness: %v\n", worstSolution, worstFitness)
 	fmt.Printf("Average fitness: %f\n", averageFitness)
-	
+
 	return Results{
 		BestSolution:   bestSolution,
 		BestFitness:    bestFitness,

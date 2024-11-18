@@ -2,7 +2,9 @@ package local_search
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
+	"sort"
 )
 
 type Move struct {
@@ -88,44 +90,6 @@ func deltaTwoEdgesExchange(solution []int, i int, j int, distanceMatrix [][]int)
 		distanceMatrix[nextI][nextJ] - distanceMatrix[nextJ][nextJ]
 
 	return costAfter - costBefore
-}
-
-// i, j are indexes in solution NOT IN MATRIX
-// calculates delta fitness that adds a i->j edge
-// e.g. transforms 12345 -> 12354
-func deltaTwoEdgesExchangeCandidate(solution []int, i int, j int, dM [][]int) int {
-	n := len(solution)
-
-	I := solution[i]
-	J := solution[j]
-
-	nextI := solution[(i+1)%n]
-	prevJ := solution[(j-1+n)%n]
-	nextJ := solution[(j+1)%n]
-
-	return dM[I][J] + dM[J][nextI] + dM[prevJ][nextJ] - dM[I][nextI] - dM[prevJ][J] - dM[J][nextJ]
-
-}
-
-// Moves j to i+1 position
-func moveAfter(slice []int, i int, j int) []int {
-	if i == j || i < 0 || i >= len(slice) || j < 0 || j >= len(slice) {
-		return slice
-	}
-
-	// Remove the element at index `j` and save it
-	elem := slice[j]
-	if j > i {
-		// If j is after i, remove it before inserting at i+1
-		slice = append(slice[:j], slice[j+1:]...)
-		slice = append(slice[:i+1], append([]int{elem}, slice[i+1:]...)...)
-	} else {
-		// If j is before i, insert at i+1 first, then remove old j
-		slice = append(slice[:i+1], append([]int{elem}, slice[i+1:]...)...)
-		slice = append(slice[:j], slice[j+1:]...)
-	}
-
-	return slice
 }
 
 // Return delta
@@ -292,7 +256,7 @@ func SteepestCandidate(solution []int,
 			// inter move here
 			tempMove.moveType = "interRouteExchange"
 			delta = deltaInterCandidate(solution, tempMove.i, tempMove.j, distanceMatrix)
-		} else if tempMove.solutionI == -1{
+		} else if tempMove.solutionI == -1 {
 			tempMove.moveType = "interRouteExchange"
 
 			tempMove.i, tempMove.j = tempMove.j, tempMove.i
@@ -330,4 +294,146 @@ func SteepestCandidate(solution []int,
 	}
 
 	return solution, improved
+}
+
+func SteepestDelta(solution []int, visited map[int]bool, unselectedNodes []int, distanceMatrix [][]int, moves []MoveDelta) ([]int, bool) {
+	bestDelta := 0
+	improved := false
+	var bestMove MoveDelta
+	var move_i_index int
+	var move_j_index int
+	var moveType string
+	var unselected_node int
+
+	for i, move := range moves {
+		delta := move.delta
+		move_i_index = findIndex(solution, move.i)
+		move_j_index = findIndex(solution, move.j)
+
+		// removing unwanted moves (set delta to 0 in the moves list)
+		if move.moveType == "twoEdgesExchange" &&
+			((move_i_index == -1 || move_j_index == -1) || math.Abs(float64(move_i_index-move_j_index)) == 1) {
+			moves[i].delta = 0
+			continue
+		}
+		if move.moveType == "interRouteExchange" &&
+			(move_i_index == -1 || move_j_index != -1) {
+			moves[i].delta = 0
+			continue
+		}
+
+		if delta < bestDelta {
+			bestDelta = delta
+			bestMove = move
+			moveType = move.moveType
+
+			// remove move from moves and break (set delta to 0 in the moves list)
+			moves[i].delta = 0
+			break
+		}
+	}
+
+	if bestDelta < 0 {
+		if moveType == "twoEdgesExchange" {
+			// fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
+			min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+			max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+			applyMove(solution, Move{moveType: moveType, i: min, j: max}, &unselectedNodes)
+		} else {
+			// fmt.Println("Best move: ", bestMove, move_i_index, move_j_index)
+			unselected_before := append([]int{}, unselectedNodes...)
+			applyMove(solution, Move{moveType: moveType, i: move_i_index, j: bestMove.j}, &unselectedNodes)
+
+			// find the unselected node
+			for _, node := range unselected_before {
+				if !contains(unselectedNodes, node) {
+					unselected_node = node
+				}
+			}
+		}
+		improved = true
+
+		// Update the moves list
+		updateMovesDelta(bestMove, moves, distanceMatrix, solution, move_i_index, move_j_index, unselected_node)
+
+		return solution, improved
+	}
+
+	return solution, improved
+}
+
+func updateMovesDelta(bestMove MoveDelta, moves []MoveDelta, distanceMatrix [][]int, solution []int, move_i_index int, move_j_index int, unselected_node int) {
+	var NodestoCheck []int
+	if bestMove.moveType == "twoEdgesExchange" {
+		min := int(math.Min(float64(move_i_index), float64(move_j_index)))
+		max := int(math.Max(float64(move_i_index), float64(move_j_index)))
+		min = int(math.Max(float64(min-1), 0))
+		max = int(math.Min(float64(max+2), float64(len(solution))))
+		for i := min; i < max; i++ {
+			NodestoCheck = append(NodestoCheck, solution[i])
+		}
+	} else {
+		j_index := findIndex(solution, bestMove.j)
+		nextJ := solution[(j_index+1)%len(solution)]
+		prevJ := solution[(j_index-1+len(solution))%len(solution)]
+		NodestoCheck = []int{prevJ, bestMove.j, nextJ}
+	}
+
+	for M, move := range moves {
+		if move.moveType == "twoEdgesExchange" &&
+			(contains(NodestoCheck, move.i) && contains(solution, move.j)) ||
+			(contains(NodestoCheck, move.j) && contains(solution, move.i)) {
+			//check if i and j are not neighbours
+			i_index := findIndex(solution, move.i)
+			j_index := findIndex(solution, move.j)
+
+			min := int(math.Min(float64(i_index), float64(j_index)))
+			max := int(math.Max(float64(i_index), float64(j_index)))
+
+			if math.Abs(float64(i_index-j_index)) != 1 {
+				delta := deltaTwoEdgesExchange(solution, min, max, distanceMatrix)
+				if delta < 0 {
+					moves[M].delta = delta
+				} else {
+					moves[M].delta = 0
+				}
+			} else {
+				moves[M].delta = 0
+			}
+		}
+		if move.moveType == "interRouteExchange" {
+			if contains(NodestoCheck, move.i) && !contains(solution, move.j) {
+				i_index := findIndex(solution, move.i)
+				delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
+				if delta < 0 {
+					moves[M].delta = delta
+				} else {
+					moves[M].delta = 0
+				}
+			}
+			if contains(solution, move.i) && unselected_node == move.j {
+				i_index := findIndex(solution, move.i)
+				delta := deltaInterRouteExchange(solution, i_index, move.j, distanceMatrix)
+				if delta < 0 {
+					moves[M].delta = delta
+				} else {
+					moves[M].delta = 0
+				}
+			}
+		}
+	}
+
+	// Sort moves by delta in ascending order
+	sort.Slice(moves, func(a, b int) bool {
+		return moves[a].delta < moves[b].delta
+	})
+}
+
+func contains(slice []int, value int) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
