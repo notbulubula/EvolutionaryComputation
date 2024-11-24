@@ -1,8 +1,9 @@
 package local_search
 
 import (
-    "time"
-    "evolutionary_computation/utils"
+	"evolutionary_computation/utils"
+	"math/rand"
+	"time"
 )
 
 func MultiLocalSearch(costMatrix [][]int, pointless_value int) []int {
@@ -24,39 +25,64 @@ func MultiLocalSearch(costMatrix [][]int, pointless_value int) []int {
 	return bestSolution
 }
 
-
 func IterativeLocalSearch(costMatrix [][]int, pointless_value int) []int {
-    var bestFitness int
-    var bestSolution []int
-    var callCount int
-    var solution []int
+	var bestFitness int
+	var bestSolution []int
+	var callCount int
+	var solution []int
 
-    startTime := time.Now()
+	var percentage float64 = 0.3
 
-    //TODO: change the time to average from MultiLocalSearch
-    for time.Since(startTime) < 30*time.Second {
-        startNode := callCount % len(costMatrix)
+	startTime := time.Now()
 
-        if callCount == 0 {
-            solution = RandomSteepestIntraEdge(costMatrix, startNode)
-        } else {
-            bestSolutionCopy := make([]int, len(bestSolution))
-            copy(bestSolutionCopy, bestSolution)
-            //TODO add permutation of bestSolutionCopy
+	//TODO: change the time to average from MultiLocalSearch
+	for time.Since(startTime) < 30*time.Second {
+		startNode := callCount % len(costMatrix)
 
+		if callCount == 0 {
+			solution = RandomSteepestIntraEdge(costMatrix, startNode)
+		} else {
+			bestSolutionCopy := make([]int, len(bestSolution))
+			copy(bestSolutionCopy, bestSolution)
 
-            solution = SteepestIntraEdgeFromSolution(bestSolutionCopy, costMatrix, startNode)
-        }
+			permutatedSolution := PermuteSolution(bestSolutionCopy, percentage)
 
-        callCount++
-        fitness := utils.Fitness(solution, costMatrix)
+			solution = SteepestIntraEdgeFromSolution(permutatedSolution, costMatrix, startNode)
+		}
 
-        if callCount == 1 || fitness < bestFitness {
-            bestFitness = fitness
-            bestSolution = solution
-        }
-    }
-    // TODO: add callCount to results dict
-    println("Number of RandomSteepestIntraEdge calls:", callCount)
-    return bestSolution
+		callCount++
+		fitness := utils.Fitness(solution, costMatrix)
+
+		if callCount == 1 || fitness < bestFitness {
+			bestFitness = fitness
+			bestSolution = solution
+		}
+	}
+	// TODO: add callCount to results dict
+	println("Number of RandomSteepestIntraEdge calls:", callCount)
+	return bestSolution
+}
+
+func PermuteSolution(solution []int, percentage float64) []int {
+	// take 2 random indexes wchich will cover n percent of the solution
+	m := len(solution)
+	start := rand.Intn(m)
+	end := start + int(percentage*float64(m))
+	end = end % m
+
+	if start > end {
+		start, end = end, start
+	}
+
+	// permute the solution
+	for i := start; i < end; i++ {
+		//change the node to random value outside of the solution
+		new_node := rand.Intn(m)
+		for utils.Contains(solution, new_node) {
+			new_node = rand.Intn(m)
+		}
+		solution[i] = new_node
+	}
+
+	return solution
 }

@@ -26,3 +26,12 @@ func InsertAt(slice []int, index int, element int) []int {
 	}
 	return append(slice[:index], append([]int{element}, slice[index:]...)...)
 }
+
+func Contains(slice []int, value int) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
