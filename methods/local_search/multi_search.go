@@ -68,20 +68,17 @@ func PermuteSolution(solution []int, percentage float64) []int {
 	m := len(solution)
 	start := rand.Intn(m)
 	end := start + int(percentage*float64(m))
-	end = end % m
-
-	if start > end {
-		start, end = end, start
-	}
 
 	// permute the solution
 	for i := start; i < end; i++ {
 		//change the node to random value outside of the solution
+
 		new_node := rand.Intn(m)
 		for utils.Contains(solution, new_node) {
 			new_node = rand.Intn(m)
 		}
-		solution[i] = new_node
+		index := i % m
+		solution[index] = new_node
 	}
 
 	return solution
