@@ -40,7 +40,7 @@ func LargeNeighbourhoodWithLS(costMatrix [][]int, pointless_value int) []int {
 		}
 	}
 	// TODO: add callCount to results dict
-	println("Number of RandomSteepestIntraEdge calls:", callCount)
+	println("Number of calls:", callCount)
 	return bestSolution
 }
 
@@ -77,7 +77,7 @@ func LargeNeighbourhood(costMatrix [][]int, pointless_value int) []int {
 		}
 	}
 	// TODO: add callCount to results dict
-	println("Number of RandomSteepestIntraEdge calls:", callCount)
+	println("Number of calls:", callCount)
 	return bestSolution
 }
 

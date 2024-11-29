@@ -36,6 +36,8 @@ var methodsMap = map[string]MethodFunc{
 	"LS_delta":                                         local_search.LS_Delta,
 	"LS_multi":                                         local_search.MultiLocalSearch,
 	"LS_iterative":                                     local_search.IterativeLocalSearch,
+	"large_noLS":                                       local_search.LargeNeighbourhood,
+	"large_LS":                                         local_search.LargeNeighbourhoodWithLS,
 }
 
 type Results struct {
