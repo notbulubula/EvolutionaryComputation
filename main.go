@@ -34,6 +34,8 @@ var methodsMap = map[string]MethodFunc{
 	"LS_nearest_neighbour_flexible_steepest_intraedge": local_search.NearestNeighbourFlexibleSteepestIntraEdge,
 	"LS_candidates":                                    local_search.LS_Candidates,
 	"LS_delta":                                         local_search.LS_Delta,
+	"LS_multi":                                         local_search.MultiLocalSearch,
+	"LS_iterative":                                     local_search.IterativeLocalSearch,
 }
 
 type Results struct {
