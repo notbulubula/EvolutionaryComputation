@@ -19,6 +19,22 @@ func GetInitialState(costMatrix [][]int, startNode int) (int, int, []int, map[in
 	return numNodes, numToSelect, solution, visited
 }
 
+func GetSuggestedState(costMatrix [][]int, solution []int) (int, int, map[int]bool) {
+	numNodes := len(costMatrix)
+	numToSelect := (numNodes + 1) / 2 // Rounds up if odd
+	visited := make(map[int]bool)
+
+	for i := 0; i < numNodes; i++ {
+		visited[i] = false
+	}
+
+	for _, node := range solution {
+		visited[node] = true
+	}
+
+	return numNodes, numToSelect, visited
+}
+
 func InsertAt(slice []int, index int, element int) []int {
 	if index < 0 || index > len(slice) {
 		// Handle index out of bounds
