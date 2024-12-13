@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/csv"
+	"encoding/json"
+	"io"
 	"os"
 	"strconv"
 )
@@ -35,4 +37,28 @@ func LoadNodes(filename string) ([]Node, error) {
 	}
 
 	return nodes, nil
+}
+
+func LoadBestSolution(filename string) ([]int, error) {
+	// Open the JSON file
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	// Read the contents of the file
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	// Create a struct to represent the JSON data
+	var data struct {
+		BestSolution []int `json:"best_solution"`
+	}
+	// Unmarshal the JSON data into the struct
+	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data.BestSolution, nil
 }

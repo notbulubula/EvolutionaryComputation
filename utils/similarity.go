@@ -39,9 +39,9 @@ func CommonEdges(solution1, solution2 []int) float64 {
 	return float64(common) / float64(len(solution1)-1)
 }
 
-// CommonSelectedNodes calculates the number of common selected nodes between two solutions.
+// CommonNodes calculates the number of common selected nodes between two solutions.
 // Each solution is represented as a list of integers (nodes).
-func CommonSelectedNodes(solution1, solution2 []int) float64 {
+func CommonNodes(solution1, solution2 []int) float64 {
 	nodes1 := make(map[int]bool)
 	nodes2 := make(map[int]bool)
 

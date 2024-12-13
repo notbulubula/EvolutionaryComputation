@@ -49,6 +49,21 @@ type Results struct {
 	ExecutionTime  []float64 `json:"execution_time"` // in seconds
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+// Variables for global convexity
+
+// run with respective command depending on data used !!!
+// go run main.go data/TSPA.csv global_convexity
+var PATH_TO_BEST = "logs/NAMEOFFUNCTION/TSPA/results.json"
+
+// go run main.go data/TSPB.csv global_convexity
+// var PATH_TO_BEST = "logs/NAMEOFFUNCTION/TSPB/results.json"
+
+// this runs all experiments for given dataset(change if needed)
+var similarity_measures = []string{"common_nodes", "common_edges"}
+var similarities_to = []string{"best", "average"}
+
+// ///////////////////////////////////////////////////////////////////////////////
 func main() {
 	inputFile, methodName := parseArgs()
 
@@ -82,6 +97,47 @@ func main() {
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			log.Fatalf("Error running python script: %v", err)
+		}
+	} else if methodName == "global_convexity" {
+		// Open the JSON file with best solution
+		bestSolution, err := utils.LoadBestSolution(PATH_TO_BEST)
+		if err != nil {
+			log.Fatalf("Error loading best solution from %s: %v", PATH_TO_BEST, err)
+		}
+
+		for _, similarity_measure := range similarity_measures {
+			for _, similarity_to := range similarities_to {
+				fmt.Printf("Running global convexity with similarity measure: %s, similarity to: %s\n", similarity_measure, similarity_to)
+				similarities, fitnesses := local_search.GlobalConvexityLS(costMatrix, bestSolution, similarity_measure, similarity_to)
+
+				//save to json file
+				results := map[string]interface{}{
+					"similarities": similarities,
+					"fitnesses":    fitnesses,
+				}
+
+				jsonResults, err := json.Marshal(results)
+				if err != nil {
+					log.Fatalf("Error marshalling results: %v", err)
+				}
+
+				tempFile, err := os.CreateTemp("", "results.json")
+				if err != nil {
+					log.Fatalf("Error creating temp file: %v", err)
+				}
+				defer tempFile.Close()
+
+				if _, err := tempFile.Write(jsonResults); err != nil {
+					log.Fatalf("Error writing to temp file: %v", err)
+				}
+
+				cmd := exec.Command("python", "scripts/log_results_glob_conv.py", inputFile, tempFile.Name(), methodName, similarity_measure, similarity_to)
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Run(); err != nil {
+					log.Fatalf("Error running python script: %v", err)
+				}
+			}
 		}
 	} else {
 		log.Fatalf("Unknown method: %s", methodName)
