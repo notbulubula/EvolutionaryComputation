@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"fmt"
+	"strings"
+)
 // Returns number of total nodes, number of nodes to select
 // solution list with initial Node and a map of visited nodes
 // Use to remove duplicated code
@@ -50,4 +54,7 @@ func Contains(slice []int, value int) bool {
 		}
 	}
 	return false
+}
+func SolutionToString(solution []int) string {
+	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(solution)), ","), "[]")
 }
