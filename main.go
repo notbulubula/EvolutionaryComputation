@@ -38,7 +38,8 @@ var methodsMap = map[string]MethodFunc{
 	"LS_iterative":                                     local_search.IterativeLocalSearch,
 	"large_noLS":                                       local_search.LargeNeighbourhood,
 	"large_LS":                                         local_search.LargeNeighbourhoodWithLS,
-	"custom": 										    local_search.CustomMethod,
+	"custom":                                           local_search.CustomMethod,
+	"hybrid":                                           local_search.HybridEA,
 }
 
 type Results struct {
